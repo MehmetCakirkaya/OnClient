@@ -1,14 +1,15 @@
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
+import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
-import { Provider } from 'react-redux';
-import * as SplashScreen from 'expo-splash-screen';
 import 'react-native-reanimated';
+import { Provider } from 'react-redux';
 
-import { store } from '@/store';
+import { Colors } from '@/constants/Theme';
 import { useColorScheme } from '@/hooks/useColorScheme';
+import { store } from '@/store';
 
 // Splash screen'i göster
 SplashScreen.preventAutoHideAsync();
@@ -21,10 +22,8 @@ export default function RootLayout() {
 
   useEffect(() => {
     if (loaded) {
-      // Font yüklendikten sonra splash screen'i gizle
-      setTimeout(() => {
-        SplashScreen.hideAsync();
-      }, 5000); // 5 saniye splash screen
+      // Font yüklendikten sonra splash screen'i otomatik gizle
+      SplashScreen.hideAsync();
     }
   }, [loaded]);
 
@@ -40,9 +39,22 @@ export default function RootLayout() {
           <Stack.Screen name="index" options={{ headerShown: false }} />
           <Stack.Screen name="(auth)" options={{ headerShown: false }} />
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen name="(modal)" options={{ headerShown: false, presentation: 'modal' }} />
+          <Stack.Screen 
+            name="customer" 
+            options={{ 
+              headerShown: false,
+              presentation: 'card',
+              gestureEnabled: true 
+            }} 
+          />
           <Stack.Screen name="+not-found" />
         </Stack>
-        <StatusBar style="auto" />
+        <StatusBar 
+          style="light" 
+          backgroundColor={Colors.primary[900]}
+          translucent={false}
+        />
       </ThemeProvider>
     </Provider>
   );

@@ -1,13 +1,24 @@
 {
   "expo": {
-    "name": "OnClient",
-    "slug": "OnClient",
+    "name": "OnClient - Meta Müşteri Yönetimi",
+    "slug": "onclient-meta",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "onclient",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "owner": "onclient",
+    "description": "Meta reklam müşterilerinizi profesyonelce yönetin. Müşteri takibi, kampanya yönetimi ve iletişim araçları.",
+    "keywords": [
+      "meta",
+      "reklam",
+      "müşteri",
+      "yönetim",
+      "crm",
+      "marketing"
+    ],
+    "privacy": "public",
     "ios": {
       "supportsTablet": true
     },
@@ -37,6 +48,18 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "b8c44077-d808-4cb8-b980-335c1c0fc191"
+      }
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/b8c44077-d808-4cb8-b980-335c1c0fc191"
     }
   }
 }

@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, SafeAreaView, TextInput, StyleSheet } from 'react-native';
+import { BorderRadius, Colors, FontSizes, Shadows, Spacing } from '@/constants/Theme';
+import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
-import { Colors, FontSizes, Spacing, BorderRadius, Shadows } from '@/constants/Theme';
+import React, { useState } from 'react';
+import { SafeAreaView, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 interface Customer {
   id: number;
@@ -11,7 +11,7 @@ interface Customer {
   email: string;
   phone: string;
   campaign: string;
-  status: 'not-contacted' | 'contacted' | 'converted' | 'not-interested';
+  status: 'interested' | 'not-interested' | 'uncertain';
   createdAt: string;
   lastContactDate?: string;
   notes: number;
@@ -20,7 +20,9 @@ interface Customer {
 export default function CustomersScreen() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedFilter, setSelectedFilter] = useState('all');
+  const [activeFilters, setActiveFilters] = useState<string[]>([
+    'Arandı', 'Web Tasarım', 'Son 7 gün'
+  ]);
 
   // Mock data - gerçek uygulamada Redux'tan gelecek
   const customers: Customer[] = [
@@ -30,7 +32,7 @@ export default function CustomersScreen() {
       email: 'ahmet@email.com',
       phone: '+90 555 123 4567',
       campaign: 'Yazılım Kursu',
-      status: 'not-contacted',
+      status: 'uncertain',
       createdAt: '2024-01-15',
       notes: 0,
     },
@@ -40,7 +42,7 @@ export default function CustomersScreen() {
       email: 'ayse@email.com',
       phone: '+90 555 234 5678',
       campaign: 'Dijital Pazarlama',
-      status: 'contacted',
+      status: 'interested',
       createdAt: '2024-01-14',
       lastContactDate: '2024-01-16',
       notes: 2,
@@ -51,7 +53,7 @@ export default function CustomersScreen() {
       email: 'mehmet@email.com',
       phone: '+90 555 345 6789',
       campaign: 'Web Tasarım',
-      status: 'converted',
+      status: 'interested',
       createdAt: '2024-01-13',
       lastContactDate: '2024-01-15',
       notes: 1,
@@ -73,29 +75,19 @@ export default function CustomersScreen() {
       email: 'ali@email.com',
       phone: '+90 555 567 8901',
       campaign: 'E-ticaret',
-      status: 'not-contacted',
+      status: 'uncertain',
       createdAt: '2024-01-11',
       notes: 0,
     },
   ];
 
-  const filters = [
-    { id: 'all', label: 'Tümü', count: customers.length },
-    { id: 'not-contacted', label: 'Aranmadı', count: customers.filter(c => c.status === 'not-contacted').length },
-    { id: 'contacted', label: 'Arandı', count: customers.filter(c => c.status === 'contacted').length },
-    { id: 'converted', label: 'Dönüştü', count: customers.filter(c => c.status === 'converted').length },
-    { id: 'not-interested', label: 'İlgilenmiyor', count: customers.filter(c => c.status === 'not-interested').length },
-  ];
-
   const getStatusStyle = (status: string) => {
     switch (status) {
-      case 'not-contacted':
-        return { backgroundColor: '#fef2f2', color: '#dc2626' };
-      case 'contacted':
-        return { backgroundColor: Colors.brand.cream, color: Colors.primary[600] };
-      case 'converted':
+      case 'interested':
         return { backgroundColor: Colors.success[100], color: Colors.success[600] };
       case 'not-interested':
+        return { backgroundColor: '#fef2f2', color: '#dc2626' };
+      case 'uncertain':
         return { backgroundColor: Colors.gray[100], color: Colors.gray[500] };
       default:
         return { backgroundColor: Colors.gray[100], color: Colors.gray[600] };
@@ -104,14 +96,12 @@ export default function CustomersScreen() {
 
   const getStatusText = (status: string) => {
     switch (status) {
-      case 'not-contacted':
-        return 'Aranmadı';
-      case 'contacted':
-        return 'Arandı';
-      case 'converted':
-        return 'Dönüştü';
+      case 'interested':
+        return 'İlgileniyor';
       case 'not-interested':
         return 'İlgilenmiyor';
+      case 'uncertain':
+        return 'Belirsiz';
       default:
         return 'Bilinmiyor';
     }
@@ -122,13 +112,12 @@ export default function CustomersScreen() {
                          customer.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          customer.phone.includes(searchQuery);
     
-    const matchesFilter = selectedFilter === 'all' || customer.status === selectedFilter;
-    
-    return matchesSearch && matchesFilter;
+    // TODO: Apply active filters from modal
+    return matchesSearch;
   });
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: Colors.primary[900] }]}>
       <LinearGradient
         colors={[Colors.background, Colors.primary[50]]}
         style={styles.gradient}
@@ -137,18 +126,35 @@ export default function CustomersScreen() {
         <View style={styles.header}>
           <View style={styles.headerContent}>
             <Text style={styles.title}>Müşteriler</Text>
-            <TouchableOpacity 
-              onPress={() => router.push('/customers/add')}
-              style={styles.addButton}
-            >
-              <LinearGradient
-                colors={[Colors.primary[500], Colors.primary[600]]}
-                style={styles.addButtonGradient}
+            <View style={styles.headerActions}>
+              <TouchableOpacity 
+                onPress={() => router.push('/(modal)/customer-filters')}
+                style={styles.filterButton}
               >
-                <Ionicons name="add" size={20} color="white" />
-                <Text style={styles.addButtonText}>Ekle</Text>
-              </LinearGradient>
-            </TouchableOpacity>
+                <Ionicons 
+                  name="funnel" 
+                  size={18} 
+                  color={Colors.primary[600]} 
+                />
+                {activeFilters.length > 0 && (
+                  <View style={styles.filterBadge}>
+                    <Text style={styles.filterBadgeText}>{activeFilters.length}</Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+              <TouchableOpacity 
+                onPress={() => console.log('Add customer')}
+                style={styles.addButton}
+              >
+                <LinearGradient
+                  colors={[Colors.primary[500], Colors.primary[600]]}
+                  style={styles.addButtonGradient}
+                >
+                  <Ionicons name="add" size={20} color="white" />
+                  <Text style={styles.addButtonText}>Ekle</Text>
+                </LinearGradient>
+              </TouchableOpacity>
+            </View>
           </View>
 
           {/* Search Bar */}
@@ -172,38 +178,41 @@ export default function CustomersScreen() {
               )}
             </LinearGradient>
           </View>
-        </View>
 
-              {/* Filters */}
-        <View style={styles.filtersSection}>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filtersContent}>
-            {filters.map((filter) => (
-              <TouchableOpacity
-                key={filter.id}
-                onPress={() => setSelectedFilter(filter.id)}
-                style={styles.filterButton}
+          {/* Active Filter Tags */}
+          {activeFilters.length > 0 && (
+            <View style={styles.activeFiltersContainer}>
+              <ScrollView 
+                horizontal 
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.activeFiltersContent}
               >
-                <LinearGradient
-                  colors={selectedFilter === filter.id 
-                    ? [Colors.primary[500], Colors.primary[600]] 
-                    : [Colors.surface, Colors.primary[50]]
-                  }
-                  style={styles.filterButtonGradient}
-                >
-                  <Text style={[
-                    styles.filterButtonText,
-                    selectedFilter === filter.id ? styles.filterButtonTextActive : styles.filterButtonTextInactive
-                  ]}>
-                    {filter.label} ({filter.count})
-                  </Text>
-                </LinearGradient>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
+                {activeFilters.map((filter, index) => (
+                  <View key={index} style={styles.filterTag}>
+                    <LinearGradient
+                      colors={[Colors.primary[100], Colors.primary[200]]}
+                      style={styles.filterTagGradient}
+                    >
+                      <Text style={styles.filterTagText}>{filter}</Text>
+                      <TouchableOpacity
+                        onPress={() => setActiveFilters(prev => prev.filter((_, i) => i !== index))}
+                        style={styles.filterTagClose}
+                      >
+                        <Ionicons name="close" size={14} color={Colors.primary[600]} />
+                      </TouchableOpacity>
+                    </LinearGradient>
+                  </View>
+                ))}
+              </ScrollView>
+            </View>
+          )}
         </View>
 
       {/* Customer List */}
-      <ScrollView style={styles.listContainer}>
+      <ScrollView 
+        style={styles.listContainer}
+        contentContainerStyle={styles.listContent}
+      >
         {filteredCustomers.length === 0 ? (
           <View style={styles.emptyContainer}>
             <Ionicons name="people-outline" size={64} color={Colors.gray[400]} />
@@ -219,7 +228,7 @@ export default function CustomersScreen() {
             {filteredCustomers.map((customer) => (
               <TouchableOpacity
                 key={customer.id}
-                onPress={() => router.push(`/customers/${customer.id}`)}
+                onPress={() => router.push(`/(modal)/customer-detail?id=${customer.id}` as any)}
                 style={styles.customerCard}
               >
                 <LinearGradient
@@ -293,6 +302,7 @@ const styles = StyleSheet.create({
   header: {
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.md,
+    overflow: 'visible',
   },
   headerContent: {
     flexDirection: 'row',
@@ -341,35 +351,7 @@ const styles = StyleSheet.create({
     color: Colors.text.primary,
     fontSize: FontSizes.base,
   },
-  filtersSection: {
-    paddingVertical: Spacing.sm,
-  },
-  filtersContent: {
-    paddingHorizontal: Spacing.lg,
-  },
-  filterButton: {
-    borderRadius: BorderRadius.full,
-    marginRight: Spacing.sm,
-    ...Shadows.sm,
-  },
-  filterButtonGradient: {
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm + 2,
-    borderRadius: BorderRadius.full,
-    borderWidth: 1,
-    borderColor: Colors.primary[300],
-    minHeight: 36,
-  },
-  filterButtonText: {
-    fontWeight: '500',
-    fontSize: FontSizes.sm,
-  },
-  filterButtonTextActive: {
-    color: Colors.text.onPrimary,
-  },
-  filterButtonTextInactive: {
-    color: Colors.primary[700],
-  },
+
   listContainer: {
     flex: 1,
     paddingHorizontal: Spacing.lg,
@@ -395,6 +377,7 @@ const styles = StyleSheet.create({
   },
   listContent: {
     gap: Spacing.sm + 2,
+    paddingBottom: Spacing.tabBarHeight,
   },
   customerCard: {
     borderRadius: BorderRadius.lg,
@@ -499,5 +482,69 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.gray[100],
     padding: Spacing.sm,
     borderRadius: BorderRadius.sm,
+  },
+  // Filter-related styles
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+    overflow: 'visible',
+  },
+  filterButton: {
+    position: 'relative',
+    padding: Spacing.sm,
+    backgroundColor: Colors.surface,
+    borderRadius: BorderRadius.md,
+    overflow: 'visible',
+    ...Shadows.sm,
+  },
+  filterBadge: {
+    position: 'absolute',
+    top: -2,
+    right: -2,
+    backgroundColor: Colors.error,
+    borderRadius: 10,
+    width: 20,
+    height: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  filterBadgeText: {
+    color: Colors.text.onPrimary,
+    fontSize: FontSizes.xs,
+    fontWeight: '600',
+  },
+  activeFiltersContainer: {
+    marginTop: Spacing.sm,
+  },
+  activeFiltersContent: {
+    paddingHorizontal: Spacing.lg,
+    gap: Spacing.sm,
+  },
+  filterTag: {
+    borderRadius: BorderRadius.md,
+    overflow: 'hidden',
+    ...Shadows.sm,
+  },
+  filterTagGradient: {
+    paddingVertical: Spacing.xs + 2,
+    paddingHorizontal: Spacing.sm,
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: BorderRadius.md,
+  },
+  filterTagText: {
+    fontSize: FontSizes.sm,
+    color: Colors.primary[700],
+    fontWeight: '500',
+    marginRight: Spacing.xs,
+  },
+  filterTagClose: {
+    backgroundColor: Colors.primary[300],
+    borderRadius: 12,
+    width: 24,
+    height: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 }); 

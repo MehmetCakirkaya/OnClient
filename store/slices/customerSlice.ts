@@ -9,7 +9,7 @@ export interface Customer {
   source: string;
   createdAt: string;
   lastContactDate?: string;
-  status: 'not-contacted' | 'contacted' | 'converted' | 'not-interested';
+  status: 'interested' | 'not-interested' | 'uncertain';
   notes: Note[];
   reminderDate?: string;
   hasReminder: boolean;

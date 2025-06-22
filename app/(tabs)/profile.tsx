@@ -1,10 +1,10 @@
-import React from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { BorderRadius, Colors, FontSizes, Shadows, Spacing } from '@/constants/Theme';
+import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
-import { Colors, FontSizes, Spacing, BorderRadius, Shadows } from '@/constants/Theme';
+import React from 'react';
+import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function ProfileScreen() {
   const router = useRouter();
@@ -26,21 +26,21 @@ export default function ProfileScreen() {
       subtitle: 'Kişisel bilgilerinizi düzenleyin',
       icon: 'person',
       color: Colors.primary[500],
-      onPress: () => console.log('Account settings')
+      onPress: () => router.push('/(modal)/account-settings')
     },
     {
       title: 'Plan & Faturalama',
       subtitle: 'Abonelik planınızı yönetin',
       icon: 'diamond',
-      color: Colors.warning,
-      onPress: () => router.push('/(auth)/plans')
+      color: '#f59e0b',
+      onPress: () => router.push('/(modal)/billing-settings')
     },
     {
       title: 'Bildirim Ayarları',
       subtitle: 'Bildirim tercihlerinizi ayarlayın',
       icon: 'notifications',
-      color: Colors.info,
-      onPress: () => router.push('/(tabs)/notifications')
+      color: Colors.primary[400],
+      onPress: () => router.push('/(modal)/notification-settings')
     },
     {
       title: 'Veri & Gizlilik',
@@ -53,7 +53,7 @@ export default function ProfileScreen() {
       title: 'Yardım & Destek',
       subtitle: 'SSS, iletişim ve destek',
       icon: 'help-circle',
-      color: Colors.secondary[500],
+      color: Colors.gray[600],
       onPress: () => console.log('Help & Support')
     },
     {
@@ -81,12 +81,16 @@ export default function ProfileScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: Colors.primary[900] }]}>
       <LinearGradient
         colors={[Colors.background, Colors.primary[50]]}
         style={styles.gradient}
       >
-        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        <ScrollView 
+          style={styles.scrollView} 
+          contentContainerStyle={styles.scrollViewContent}
+          showsVerticalScrollIndicator={false}
+        >
           {/* Header */}
           <View style={styles.header}>
             <Text style={styles.headerTitle}>Profil</Text>
@@ -98,21 +102,21 @@ export default function ProfileScreen() {
               colors={[Colors.primary[500], Colors.primary[600]]}
               style={styles.userCardGradient}
             >
-              <View style={styles.userAvatar}>
-                <Text style={styles.userInitials}>
-                  {user.name.split(' ').map(n => n[0]).join('')}
-                </Text>
-              </View>
-              
-              <View style={styles.userInfo}>
-                <Text style={styles.userName}>{user.name}</Text>
-                <Text style={styles.userEmail}>{user.email}</Text>
-                <Text style={styles.userCompany}>{user.company}</Text>
-              </View>
-
-              <View style={styles.planBadge}>
-                <Ionicons name="diamond" size={16} color={Colors.warning} />
-                <Text style={styles.planText}>{user.plan}</Text>
+              <View style={styles.userCardContent}>
+                <View style={styles.userAvatar}>
+                  <Text style={styles.userInitials}>
+                    {user.name.split(' ').map(n => n[0]).join('')}
+                  </Text>
+                </View>
+                
+                <View style={styles.userInfo}>
+                  <Text style={styles.userName}>{user.name}</Text>
+                  <Text style={styles.userEmail}>{user.email}</Text>
+                  <View style={styles.planBadge}>
+                    <Ionicons name="diamond" size={16} color="#f59e0b" />
+                    <Text style={styles.planText}>{user.plan}</Text>
+                  </View>
+                </View>
               </View>
             </LinearGradient>
           </View>
@@ -135,9 +139,9 @@ export default function ProfileScreen() {
                 colors={[Colors.surface, Colors.primary[50]]}
                 style={styles.statGradient}
               >
-                <Ionicons name="trending-up" size={24} color={Colors.success[500]} />
+                <Ionicons name="trending-up" size={24} color={Colors.success[600]} />
                 <Text style={styles.statValue}>{user.campaignsCount}</Text>
-                <Text style={styles.statLabel}>Kampanya</Text>
+                <Text style={styles.statLabel}>Onay</Text>
               </LinearGradient>
             </View>
             
@@ -146,7 +150,7 @@ export default function ProfileScreen() {
                 colors={[Colors.surface, Colors.primary[50]]}
                 style={styles.statGradient}
               >
-                <Ionicons name="calendar" size={24} color={Colors.info} />
+                <Ionicons name="calendar" size={24} color={Colors.primary[500]} />
                 <Text style={styles.statValue}>89</Text>
                 <Text style={styles.statLabel}>Gün</Text>
               </LinearGradient>
@@ -228,6 +232,9 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: Spacing.lg,
   },
+  scrollViewContent: {
+    paddingBottom: Spacing.tabBarHeight,
+  },
   header: {
     paddingVertical: Spacing.lg,
   },
@@ -244,6 +251,8 @@ const styles = StyleSheet.create({
   },
   userCardGradient: {
     padding: Spacing.xl,
+  },
+  userCardContent: {
     flexDirection: 'row',
     alignItems: 'center',
   },
@@ -286,6 +295,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm,
     borderRadius: BorderRadius.full,
+    alignSelf: 'flex-start',
+    marginTop: Spacing.sm,
   },
   planText: {
     fontSize: FontSizes.sm,

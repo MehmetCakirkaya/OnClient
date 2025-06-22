@@ -86,6 +86,7 @@ export const Spacing = {
   lg: 24,
   xl: 32,
   xxl: 48,
+  tabBarHeight: 80, // Tab bar yüksekliği
 };
 
 export const BorderRadius = {

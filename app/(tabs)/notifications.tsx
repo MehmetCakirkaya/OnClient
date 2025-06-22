@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Switch, StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
+import { BorderRadius, Colors, FontSizes, Shadows, Spacing } from '@/constants/Theme';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors, FontSizes, Spacing, BorderRadius, Shadows } from '@/constants/Theme';
+import { LinearGradient } from 'expo-linear-gradient';
+import React, { useState } from 'react';
+import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 interface Notification {
   id: number;
@@ -51,14 +51,24 @@ export default function NotificationsScreen() {
       read: false,
       createdAt: '2024-01-14T12:00:00Z',
     },
+    {
+      id: 5,
+      title: 'Kampanya Performansı',
+      message: 'Bu ayki reklam kampanyanız hedefi %120 oranında aştı.',
+      type: 'system',
+      read: false,
+      createdAt: '2024-01-13T15:30:00Z',
+    },
+    {
+      id: 6,
+      title: 'Müşteri Geri Bildirimi',
+      message: 'Ayşe Demir sizin için 5 yıldız değerlendirme bıraktı.',
+      type: 'customer',
+      read: true,
+      createdAt: '2024-01-12T11:20:00Z',
+      customerName: 'Ayşe Demir',
+    },
   ]);
-
-  const [notificationSettings, setNotificationSettings] = useState({
-    reminders: true,
-    newCustomers: true,
-    weeklyReports: true,
-    planUpdates: true,
-  });
 
   const unreadCount = notifications.filter(n => !n.read).length;
 
@@ -79,7 +89,20 @@ export default function NotificationsScreen() {
   };
 
   const deleteNotification = (id: number) => {
-    setNotifications(prev => prev.filter(notification => notification.id !== id));
+    Alert.alert(
+      'Bildirimi Sil',
+      'Bu bildirimi silmek istediğinizden emin misiniz?',
+      [
+        { text: 'İptal', style: 'cancel' },
+        { 
+          text: 'Sil', 
+          style: 'destructive',
+          onPress: () => {
+            setNotifications(prev => prev.filter(notification => notification.id !== id));
+          }
+        }
+      ]
+    );
   };
 
   const getNotificationIcon = (type: string) => {
@@ -112,12 +135,16 @@ export default function NotificationsScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: Colors.primary[900] }]}>
       <LinearGradient
         colors={[Colors.background, Colors.primary[50]]}
         style={styles.gradient}
       >
-        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        <ScrollView 
+          style={styles.scrollView} 
+          contentContainerStyle={styles.scrollViewContent}
+          showsVerticalScrollIndicator={false}
+        >
           {/* Header */}
           <View style={styles.header}>
             <View>
@@ -140,201 +167,99 @@ export default function NotificationsScreen() {
             )}
           </View>
 
-          {/* Notification Settings */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Bildirim Ayarları</Text>
-            <View style={styles.settingsCard}>
+          {/* Empty State */}
+          {notifications.length === 0 && (
+            <View style={styles.emptyState}>
               <LinearGradient
-                colors={[Colors.surface, Colors.primary[50]]}
-                style={styles.settingsGradient}
+                colors={[Colors.surface, Colors.surface]}
+                style={styles.emptyStateGradient}
               >
-                <View style={styles.settingItem}>
-                  <View style={styles.settingInfo}>
-                    <View style={[styles.settingIcon, { backgroundColor: `${Colors.warning}20` }]}>
-                      <Ionicons name="alarm" size={24} color={Colors.warning} />
-                    </View>
-                    <View style={styles.settingText}>
-                      <Text style={styles.settingTitle}>Hatırlatmalar</Text>
-                      <Text style={styles.settingDescription}>
-                        Müşteri arama hatırlatmaları
-                      </Text>
-                    </View>
-                  </View>
-                  <Switch
-                    value={notificationSettings.reminders}
-                    onValueChange={(value) => 
-                      setNotificationSettings(prev => ({ ...prev, reminders: value }))
-                    }
-                    trackColor={{ false: Colors.gray[300], true: Colors.primary[200] }}
-                    thumbColor={notificationSettings.reminders ? Colors.primary[500] : Colors.gray[400]}
-                  />
+                <View style={styles.emptyIcon}>
+                  <Ionicons name="notifications-off" size={48} color={Colors.gray[400]} />
                 </View>
-
-                <View style={styles.settingItem}>
-                  <View style={styles.settingInfo}>
-                    <View style={[styles.settingIcon, { backgroundColor: `${Colors.success[500]}20` }]}>
-                      <Ionicons name="person-add" size={24} color={Colors.success[500]} />
-                    </View>
-                    <View style={styles.settingText}>
-                      <Text style={styles.settingTitle}>Yeni Müşteriler</Text>
-                      <Text style={styles.settingDescription}>
-                        Yeni müşteri kayıtları
-                      </Text>
-                    </View>
-                  </View>
-                  <Switch
-                    value={notificationSettings.newCustomers}
-                    onValueChange={(value) => 
-                      setNotificationSettings(prev => ({ ...prev, newCustomers: value }))
-                    }
-                    trackColor={{ false: Colors.gray[300], true: Colors.primary[200] }}
-                    thumbColor={notificationSettings.newCustomers ? Colors.primary[500] : Colors.gray[400]}
-                  />
-                </View>
-
-                <View style={styles.settingItem}>
-                  <View style={styles.settingInfo}>
-                    <View style={[styles.settingIcon, { backgroundColor: `${Colors.info}20` }]}>
-                      <Ionicons name="bar-chart" size={24} color={Colors.info} />
-                    </View>
-                    <View style={styles.settingText}>
-                      <Text style={styles.settingTitle}>Haftalık Raporlar</Text>
-                      <Text style={styles.settingDescription}>
-                        Haftalık özet raporları
-                      </Text>
-                    </View>
-                  </View>
-                  <Switch
-                    value={notificationSettings.weeklyReports}
-                    onValueChange={(value) => 
-                      setNotificationSettings(prev => ({ ...prev, weeklyReports: value }))
-                    }
-                    trackColor={{ false: Colors.gray[300], true: Colors.primary[200] }}
-                    thumbColor={notificationSettings.weeklyReports ? Colors.primary[500] : Colors.gray[400]}
-                  />
-                </View>
-
-                <View style={[styles.settingItem, styles.lastSettingItem]}>
-                  <View style={styles.settingInfo}>
-                    <View style={[styles.settingIcon, { backgroundColor: `${Colors.primary[500]}20` }]}>
-                      <Ionicons name="diamond" size={24} color={Colors.primary[500]} />
-                    </View>
-                    <View style={styles.settingText}>
-                      <Text style={styles.settingTitle}>Plan Güncellemeleri</Text>
-                      <Text style={styles.settingDescription}>
-                        Abonelik ve plan bildirimleri
-                      </Text>
-                    </View>
-                  </View>
-                  <Switch
-                    value={notificationSettings.planUpdates}
-                    onValueChange={(value) => 
-                      setNotificationSettings(prev => ({ ...prev, planUpdates: value }))
-                    }
-                    trackColor={{ false: Colors.gray[300], true: Colors.primary[200] }}
-                    thumbColor={notificationSettings.planUpdates ? Colors.primary[500] : Colors.gray[400]}
-                  />
-                </View>
+                <Text style={styles.emptyTitle}>Henüz bildiriminiz yok</Text>
+                <Text style={styles.emptyDescription}>
+                  Yeni müşteriler, hatırlatmalar ve sistem güncellemeleri burada görünecek.
+                </Text>
               </LinearGradient>
             </View>
-          </View>
+          )}
 
           {/* Notifications List */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Son Bildirimler</Text>
-            
-            {notifications.length === 0 ? (
-              <View style={styles.emptyCard}>
-                <LinearGradient
-                  colors={[Colors.surface, Colors.gray[50]]}
-                  style={styles.emptyGradient}
+          <View style={styles.notificationsList}>
+            {notifications.map((notification) => {
+              const iconInfo = getNotificationIcon(notification.type);
+              return (
+                <TouchableOpacity
+                  key={notification.id}
+                  onPress={() => !notification.read && markAsRead(notification.id)}
+                  style={styles.notificationCard}
                 >
-                  <Ionicons name="notifications-outline" size={64} color={Colors.gray[400]} />
-                  <Text style={styles.emptyTitle}>Bildirim yok</Text>
-                  <Text style={styles.emptyDescription}>
-                    Yeni bildirimlerin burada görünecek
-                  </Text>
-                </LinearGradient>
-              </View>
-            ) : (
-              <View style={styles.notificationsList}>
-                {notifications.map((notification) => {
-                  const iconData = getNotificationIcon(notification.type);
-                  return (
-                    <TouchableOpacity
-                      key={notification.id}
-                      onPress={() => markAsRead(notification.id)}
-                      style={styles.notificationCard}
-                    >
-                      <LinearGradient
-                        colors={[
-                          Colors.surface, 
-                          notification.read ? Colors.gray[50] : Colors.primary[50]
-                        ]}
-                        style={styles.notificationGradient}
-                      >
-                        <View style={styles.notificationHeader}>
-                          <View style={[
-                            styles.notificationIcon, 
-                            { backgroundColor: `${iconData.color}20` }
-                          ]}>
-                            <Ionicons 
-                              name={iconData.name as any} 
-                              size={20} 
-                              color={iconData.color} 
-                            />
-                          </View>
-                          
-                          <View style={styles.notificationContent}>
-                            <View style={styles.notificationTitleRow}>
-                              <Text style={[
-                                styles.notificationTitle,
-                                { fontWeight: notification.read ? '500' : '600' }
-                              ]}>
-                                {notification.title}
-                              </Text>
-                              {!notification.read && (
-                                <View style={styles.unreadDot} />
-                              )}
-                            </View>
-                            
-                            <Text style={[
-                              styles.notificationMessage,
-                              { color: notification.read ? Colors.text.secondary : Colors.text.primary }
-                            ]}>
-                              {notification.message}
-                            </Text>
-                            
-                            {notification.customerName && (
-                              <View style={styles.customerTag}>
-                                <Ionicons name="person" size={12} color={Colors.primary[600]} />
-                                <Text style={styles.customerName}>
-                                  {notification.customerName}
-                                </Text>
-                              </View>
-                            )}
-                            
-                            <Text style={styles.notificationTime}>
-                              {formatTime(notification.createdAt)}
-                            </Text>
-                          </View>
-
-                          <View style={styles.notificationActions}>
-                            <TouchableOpacity 
-                              onPress={() => deleteNotification(notification.id)}
-                              style={styles.deleteButton}
-                            >
-                              <Ionicons name="trash-outline" size={18} color={Colors.error} />
-                            </TouchableOpacity>
-                          </View>
+                  <LinearGradient
+                    colors={[Colors.surface, Colors.surface]}
+                    style={styles.notificationGradient}
+                  >
+                    <View style={styles.notificationContent}>
+                      <View style={styles.notificationHeader}>
+                        <View style={[
+                          styles.notificationIcon,
+                          { backgroundColor: `${iconInfo.color}20` }
+                        ]}>
+                          <Ionicons 
+                            name={iconInfo.name as any} 
+                            size={24} 
+                            color={iconInfo.color} 
+                          />
                         </View>
-                      </LinearGradient>
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
-            )}
+                        
+                        <View style={styles.notificationInfo}>
+                          <Text style={[
+                            styles.notificationTitle,
+                            { fontWeight: notification.read ? '500' : '700' }
+                          ]}>
+                            {notification.title}
+                          </Text>
+                          <Text style={styles.notificationTime}>
+                            {formatTime(notification.createdAt)}
+                          </Text>
+                        </View>
+
+                        <View style={styles.notificationActions}>
+                          {!notification.read && (
+                            <View style={styles.unreadDot} />
+                          )}
+                          <TouchableOpacity
+                            onPress={() => deleteNotification(notification.id)}
+                            style={styles.deleteButton}
+                          >
+                            <Ionicons name="trash-outline" size={20} color={Colors.error} />
+                          </TouchableOpacity>
+                        </View>
+                      </View>
+
+                      <Text style={[
+                        styles.notificationMessage,
+                        { color: notification.read ? Colors.text.secondary : Colors.text.primary }
+                      ]}>
+                        {notification.message}
+                      </Text>
+
+                      {notification.customerName && (
+                        <View style={styles.customerTag}>
+                          <Ionicons name="person" size={16} color={Colors.primary[600]} />
+                          <Text style={styles.customerTagText}>
+                            {notification.customerName}
+                          </Text>
+                        </View>
+                      )}
+                    </View>
+                  </LinearGradient>
+                </TouchableOpacity>
+              );
+            })}
           </View>
+
+          <View style={styles.bottomSpacing} />
         </ScrollView>
       </LinearGradient>
     </SafeAreaView>
@@ -353,10 +278,13 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: Spacing.lg,
   },
+  scrollViewContent: {
+    paddingBottom: Spacing.tabBarHeight,
+  },
   header: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    justifyContent: 'space-between',
     paddingVertical: Spacing.lg,
   },
   headerTitle: {
@@ -367,7 +295,7 @@ const styles = StyleSheet.create({
   headerSubtitle: {
     fontSize: FontSizes.sm,
     color: Colors.text.secondary,
-    marginTop: Spacing.xs,
+    marginTop: Spacing.xs / 2,
   },
   markAllButton: {
     borderRadius: BorderRadius.md,
@@ -375,165 +303,119 @@ const styles = StyleSheet.create({
     ...Shadows.sm,
   },
   markAllGradient: {
-    paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md,
   },
   markAllButtonText: {
     fontSize: FontSizes.sm,
     fontWeight: '600',
     color: Colors.text.onPrimary,
   },
-  section: {
-    marginBottom: Spacing.xl,
-  },
-  sectionTitle: {
-    fontSize: FontSizes.lg,
-    fontWeight: '600',
-    color: Colors.text.primary,
-    marginBottom: Spacing.md,
-  },
-  settingsCard: {
+  emptyState: {
+    marginTop: Spacing.xl,
     borderRadius: BorderRadius.lg,
     overflow: 'hidden',
     ...Shadows.md,
   },
-  settingsGradient: {
-    padding: Spacing.lg,
-  },
-  settingItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  emptyStateGradient: {
     alignItems: 'center',
-    paddingVertical: Spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.gray[200],
+    paddingVertical: Spacing.xxl,
+    paddingHorizontal: Spacing.lg,
   },
-  lastSettingItem: {
-    borderBottomWidth: 0,
-  },
-  settingInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-  },
-  settingIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: Spacing.md,
-  },
-  settingText: {
-    flex: 1,
-  },
-  settingTitle: {
-    fontSize: FontSizes.base,
-    fontWeight: '600',
-    color: Colors.text.primary,
-    marginBottom: Spacing.xs,
-  },
-  settingDescription: {
-    fontSize: FontSizes.sm,
-    color: Colors.text.secondary,
-    lineHeight: 18,
-  },
-  emptyCard: {
-    borderRadius: BorderRadius.lg,
-    overflow: 'hidden',
-    ...Shadows.sm,
-  },
-  emptyGradient: {
-    padding: Spacing.xxl,
-    alignItems: 'center',
+  emptyIcon: {
+    marginBottom: Spacing.lg,
   },
   emptyTitle: {
     fontSize: FontSizes.lg,
     fontWeight: '600',
     color: Colors.text.primary,
-    marginTop: Spacing.lg,
     marginBottom: Spacing.sm,
   },
   emptyDescription: {
-    fontSize: FontSizes.sm,
+    fontSize: FontSizes.base,
     color: Colors.text.secondary,
     textAlign: 'center',
+    lineHeight: 22,
   },
   notificationsList: {
-    gap: Spacing.md,
+    marginTop: Spacing.md,
   },
   notificationCard: {
+    marginBottom: Spacing.md,
     borderRadius: BorderRadius.lg,
     overflow: 'hidden',
-    ...Shadows.sm,
+    ...Shadows.md,
   },
   notificationGradient: {
-    padding: Spacing.lg,
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1,
+    borderColor: Colors.primary[200],
+  },
+  notificationContent: {
+    padding: Spacing.md,
   },
   notificationHeader: {
     flexDirection: 'row',
     alignItems: 'flex-start',
+    marginBottom: Spacing.sm,
   },
   notificationIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 48,
+    height: 48,
+    borderRadius: BorderRadius.md,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: Spacing.md,
   },
-  notificationContent: {
+  notificationInfo: {
     flex: 1,
-  },
-  notificationTitleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: Spacing.xs,
   },
   notificationTitle: {
     fontSize: FontSizes.base,
     color: Colors.text.primary,
-    flex: 1,
+    marginBottom: Spacing.xs / 2,
+  },
+  notificationTime: {
+    fontSize: FontSizes.sm,
+    color: Colors.text.secondary,
+  },
+  notificationActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   unreadDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+    width: 12,
+    height: 12,
+    borderRadius: 6,
     backgroundColor: Colors.primary[500],
-    marginLeft: Spacing.sm,
+    marginRight: Spacing.sm,
+  },
+  deleteButton: {
+    padding: Spacing.xs,
+    backgroundColor: Colors.error + '10',
+    borderRadius: BorderRadius.sm,
   },
   notificationMessage: {
-    fontSize: FontSizes.sm,
-    lineHeight: 18,
+    fontSize: FontSizes.base,
+    lineHeight: 22,
     marginBottom: Spacing.sm,
   },
   customerTag: {
     flexDirection: 'row',
     alignItems: 'center',
+    alignSelf: 'flex-start',
     backgroundColor: Colors.primary[100],
     paddingHorizontal: Spacing.sm,
-    paddingVertical: Spacing.xs,
+    paddingVertical: Spacing.xs / 2,
     borderRadius: BorderRadius.sm,
-    alignSelf: 'flex-start',
-    marginBottom: Spacing.sm,
   },
-  customerName: {
-    fontSize: FontSizes.xs,
-    fontWeight: '600',
+  customerTagText: {
+    fontSize: FontSizes.sm,
+    fontWeight: '500',
     color: Colors.primary[700],
-    marginLeft: Spacing.xs,
+    marginLeft: Spacing.xs / 2,
   },
-  notificationTime: {
-    fontSize: FontSizes.xs,
-    color: Colors.text.light,
-  },
-  notificationActions: {
-    marginLeft: Spacing.sm,
-  },
-  deleteButton: {
-    padding: Spacing.sm,
-    backgroundColor: Colors.error + '10',
-    borderRadius: BorderRadius.sm,
+  bottomSpacing: {
+    height: Spacing.xxl,
   },
 }); 
