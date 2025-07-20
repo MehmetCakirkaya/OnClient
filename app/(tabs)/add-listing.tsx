@@ -41,6 +41,7 @@ export default function AddListingScreen() {
   const [addedTeamMembers, setAddedTeamMembers] = useState<string[]>([]);
   const [addedCustomers, setAddedCustomers] = useState<string[]>([]);
   const [listingType, setListingType] = useState<'rent' | 'sale'>('rent'); // Kiralık varsayılan
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   // Örnek takım üyeleri
   const teamMembers = [
@@ -83,6 +84,15 @@ export default function AddListingScreen() {
   };
 
   const handleNextStep = () => {
+    if (currentStep === 2) {
+      // Step 2'den Step 3'e geçerken önizleme için veri hazırla
+      console.log('Önizleme için veri hazırlanıyor:', {
+        listingType,
+        houseData,
+        addedTeamMembers,
+        addedCustomers
+      });
+    }
     setCurrentStep(prev => prev + 1);
   };
 
@@ -752,6 +762,250 @@ export default function AddListingScreen() {
                   <Ionicons name="arrow-forward" size={20} color="white" />
                 </LinearGradient>
               </TouchableOpacity>
+            </ScrollView>
+          )}
+
+          {/* Step 3: Önizleme */}
+          {currentStep === 3 && selectedType === 'house' && (
+            <ScrollView 
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={styles.scrollContent}
+            >
+              <Text style={styles.stepTitle}>İlan Önizlemesi</Text>
+              <Text style={styles.stepSubtitle}>
+                İlanınızın nasıl görüneceğini kontrol edin
+              </Text>
+
+              {/* Fotoğraf Slider */}
+              {houseData.media.length > 0 && (
+                <View style={styles.previewImageContainer}>
+                  <View style={styles.imageSlider}>
+                    <Image 
+                      source={{ uri: houseData.media[currentImageIndex] }} 
+                      style={styles.previewMainImage}
+                      resizeMode="cover"
+                    />
+                    
+                    {/* Slider Dots */}
+                    {houseData.media.length > 1 && (
+                      <View style={styles.sliderDots}>
+                        {houseData.media.map((_, index) => (
+                          <TouchableOpacity
+                            key={index}
+                            style={[
+                              styles.sliderDot,
+                              index === currentImageIndex && styles.sliderDotActive
+                            ]}
+                            onPress={() => setCurrentImageIndex(index)}
+                          />
+                        ))}
+                      </View>
+                    )}
+
+                    {/* Slider Navigation */}
+                    {houseData.media.length > 1 && (
+                      <>
+                        <TouchableOpacity
+                          style={[styles.sliderNav, styles.sliderNavLeft]}
+                          onPress={() => setCurrentImageIndex(prev => 
+                            prev === 0 ? houseData.media.length - 1 : prev - 1
+                          )}
+                        >
+                          <Ionicons name="chevron-back" size={24} color="white" />
+                        </TouchableOpacity>
+                        
+                        <TouchableOpacity
+                          style={[styles.sliderNav, styles.sliderNavRight]}
+                          onPress={() => setCurrentImageIndex(prev => 
+                            prev === houseData.media.length - 1 ? 0 : prev + 1
+                          )}
+                        >
+                          <Ionicons name="chevron-forward" size={24} color="white" />
+                        </TouchableOpacity>
+                      </>
+                    )}
+                  </View>
+
+                  {/* Thumbnail Gallery */}
+                  <ScrollView 
+                    horizontal 
+                    showsHorizontalScrollIndicator={false}
+                    style={styles.thumbnailGallery}
+                  >
+                    {houseData.media.map((media, index) => (
+                      <TouchableOpacity
+                        key={index}
+                        style={[
+                          styles.thumbnail,
+                          index === currentImageIndex && styles.thumbnailActive
+                        ]}
+                        onPress={() => setCurrentImageIndex(index)}
+                      >
+                        <Image 
+                          source={{ uri: media }} 
+                          style={styles.thumbnailImage}
+                          resizeMode="cover"
+                        />
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
+                </View>
+              )}
+
+                             {/* İlan Detayları */}
+               <View style={styles.previewDetailsContainer}>
+                 {/* Başlık, Tip ve Özellikler */}
+                 <View style={styles.previewHeader}>
+                   <View style={styles.previewTitleContainer}>
+                     <Text style={styles.previewTitle}>{houseData.title || 'İlan Başlığı'}</Text>
+                     <View style={styles.previewHeaderRow}>
+                       <View style={[
+                         styles.previewTypeBadge,
+                         listingType === 'rent' ? styles.previewTypeRent : styles.previewTypeSale
+                       ]}>
+                         <Text style={styles.previewTypeText}>
+                           {listingType === 'rent' ? 'Kiralık' : 'Satılık'}
+                         </Text>
+                       </View>
+                       
+                       {/* Özellikler Badge'leri */}
+                       <View style={styles.previewFeaturesBadgeContainer}>
+                         {houseData.roomType && (
+                           <View style={styles.previewFeatureBadge}>
+                             <Ionicons name="bed" size={12} color={Colors.primary[600]} />
+                             <Text style={styles.previewFeatureBadgeText}>{houseData.roomType}</Text>
+                           </View>
+                         )}
+                         {houseData.condition && (
+                           <View style={styles.previewFeatureBadge}>
+                             <Ionicons name="home" size={12} color={Colors.primary[600]} />
+                             <Text style={styles.previewFeatureBadgeText}>{houseData.condition}</Text>
+                           </View>
+                         )}
+                         {houseData.yearBuilt && (
+                           <View style={styles.previewFeatureBadge}>
+                             <Ionicons name="time" size={12} color={Colors.primary[600]} />
+                             <Text style={styles.previewFeatureBadgeText}>{houseData.yearBuilt} yıl</Text>
+                           </View>
+                         )}
+                         {houseData.rentalPeriod && (
+                           <View style={styles.previewFeatureBadge}>
+                             <Ionicons name="calendar" size={12} color={Colors.primary[600]} />
+                             <Text style={styles.previewFeatureBadgeText}>{houseData.rentalPeriod}</Text>
+                           </View>
+                         )}
+                       </View>
+                     </View>
+                   </View>
+                   <Text style={styles.previewPrice}>
+                     {houseData.price ? `${houseData.price} ${houseData.currency}` : 'Fiyat Belirtilmemiş'}
+                   </Text>
+                 </View>
+
+                 {/* Konum */}
+                 {houseData.location && (
+                   <View style={styles.previewLocationContainer}>
+                     <Ionicons name="location" size={16} color={Colors.primary[600]} />
+                     <Text style={styles.previewLocationText}>
+                       {houseData.address || 'Konum seçildi'}
+                     </Text>
+                   </View>
+                 )}
+
+                 {/* Açıklama */}
+                 {houseData.description && (
+                   <View style={styles.previewDescriptionContainer}>
+                     <Text style={styles.previewDescriptionText}>{houseData.description}</Text>
+                   </View>
+                 )}
+
+                 {/* Ek Özellikler */}
+                 {houseData.features.length > 0 && (
+                   <View style={styles.previewExtraFeaturesContainer}>
+                     <Text style={styles.previewSectionTitle}>Ek Özellikler</Text>
+                     <View style={styles.previewExtraFeaturesGrid}>
+                       {houseData.features.map((feature, index) => (
+                         <View key={index} style={styles.previewExtraFeatureBadge}>
+                           <Ionicons name="checkmark-circle" size={12} color={Colors.success[600]} />
+                           <Text style={styles.previewExtraFeatureBadgeText}>{feature}</Text>
+                         </View>
+                       ))}
+                     </View>
+                   </View>
+                 )}
+
+                 {/* Seçilen Kişiler */}
+                 {(addedTeamMembers.length > 0 || addedCustomers.length > 0) && (
+                   <View style={styles.previewPeopleContainer}>
+                     <Text style={styles.previewSectionTitle}>İlgili Kişiler</Text>
+                     <View style={styles.previewPeopleGrid}>
+                       {addedTeamMembers.map((memberId) => {
+                         const member = teamMembers.find(m => m.id === memberId);
+                         if (!member) return null;
+                         return (
+                           <View key={memberId} style={styles.previewPersonItem}>
+                             <Image source={{ uri: member.avatar }} style={styles.previewPersonAvatar} />
+                             <View style={styles.previewPersonInfo}>
+                               <Text style={styles.previewPersonName}>{member.name}</Text>
+                               <Text style={styles.previewPersonRole}>{member.role}</Text>
+                             </View>
+                           </View>
+                         );
+                       })}
+                       {addedCustomers.map((customerId) => {
+                         const customer = customers.find(c => c.id === customerId);
+                         if (!customer) return null;
+                         return (
+                           <View key={customerId} style={styles.previewPersonItem}>
+                             <Image source={{ uri: customer.avatar }} style={styles.previewPersonAvatar} />
+                             <View style={styles.previewPersonInfo}>
+                               <Text style={styles.previewPersonName}>{customer.name}</Text>
+                               <Text style={styles.previewPersonRole}>{customer.role}</Text>
+                             </View>
+                           </View>
+                         );
+                       })}
+                     </View>
+                   </View>
+                 )}
+               </View>
+
+              {/* Aksiyon Butonları */}
+              <View style={styles.previewActionsContainer}>
+                <TouchableOpacity
+                  style={styles.previewBackButton}
+                  onPress={handleBackStep}
+                >
+                  <LinearGradient
+                    colors={[Colors.gray[100], Colors.gray[200]]}
+                    style={styles.previewBackButtonGradient}
+                  >
+                    <Ionicons name="arrow-back" size={20} color={Colors.text.secondary} />
+                    <Text style={styles.previewBackButtonText}>Geri</Text>
+                  </LinearGradient>
+                </TouchableOpacity>
+                
+                <TouchableOpacity
+                  style={styles.previewPublishButton}
+                  onPress={() => {
+                    console.log('İlan yayınlanıyor:', {
+                      listingType,
+                      houseData,
+                      addedTeamMembers,
+                      addedCustomers
+                    });
+                    // Burada ilan yayınlama işlemi yapılacak
+                  }}
+                >
+                  <LinearGradient
+                    colors={[Colors.success[500], Colors.success[600]]}
+                    style={styles.previewPublishButtonGradient}
+                  >
+                    <Ionicons name="checkmark" size={20} color="white" />
+                    <Text style={styles.previewPublishButtonText}>İlanı Yayınla</Text>
+                  </LinearGradient>
+                </TouchableOpacity>
+              </View>
             </ScrollView>
           )}
 
@@ -1772,6 +2026,263 @@ const styles = StyleSheet.create({
   },
   listingTypeTextActive: {
     color: Colors.primary[700],
+    fontWeight: '600',
+  },
+  // Önizleme sayfası styles
+  previewImageContainer: {
+    marginBottom: Spacing.lg,
+  },
+  imageSlider: {
+    position: 'relative',
+    height: 300,
+    borderRadius: BorderRadius.xl,
+    overflow: 'hidden',
+    marginBottom: Spacing.md,
+    ...Shadows.lg,
+  },
+  previewMainImage: {
+    width: '100%',
+    height: '100%',
+  },
+  sliderDots: {
+    position: 'absolute',
+    bottom: Spacing.md,
+    left: 0,
+    right: 0,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: Spacing.sm,
+  },
+  sliderDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: 'rgba(255, 255, 255, 0.5)',
+  },
+  sliderDotActive: {
+    backgroundColor: Colors.primary[500],
+  },
+  sliderNav: {
+    position: 'absolute',
+    top: '50%',
+    transform: [{ translateY: -20 }],
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    borderRadius: 20,
+    padding: Spacing.sm,
+  },
+  sliderNavLeft: {
+    left: Spacing.md,
+  },
+  sliderNavRight: {
+    right: Spacing.md,
+  },
+  thumbnailGallery: {
+    flexDirection: 'row',
+    gap: Spacing.sm,
+  },
+  thumbnail: {
+    width: 60,
+    height: 60,
+    borderRadius: BorderRadius.md,
+    overflow: 'hidden',
+    borderWidth: 2,
+    borderColor: Colors.gray[200],
+  },
+  thumbnailActive: {
+    borderColor: Colors.primary[500],
+  },
+  thumbnailImage: {
+    width: '100%',
+    height: '100%',
+  },
+  previewDetailsContainer: {
+    gap: Spacing.md,
+  },
+  previewHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    gap: Spacing.md,
+  },
+  previewTitleContainer: {
+    flex: 1,
+  },
+  previewTitle: {
+    fontSize: FontSizes.xl,
+    fontWeight: '700',
+    color: Colors.text.primary,
+    marginBottom: Spacing.sm,
+  },
+  previewHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+    flexWrap: 'wrap',
+  },
+  previewTypeBadge: {
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.full,
+  },
+  previewTypeRent: {
+    backgroundColor: Colors.primary[50],
+  },
+  previewTypeSale: {
+    backgroundColor: Colors.success[50],
+  },
+  previewTypeText: {
+    fontSize: FontSizes.sm,
+    fontWeight: '600',
+    color: Colors.primary[700],
+  },
+  previewFeaturesBadgeContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.xs,
+  },
+  previewFeatureBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.xs,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: Spacing.xs,
+    backgroundColor: Colors.gray[100],
+    borderRadius: BorderRadius.full,
+  },
+  previewFeatureBadgeText: {
+    fontSize: FontSizes.xs,
+    color: Colors.text.secondary,
+    fontWeight: '500',
+  },
+  previewPrice: {
+    fontSize: FontSizes.lg,
+    fontWeight: '700',
+    color: Colors.success[600],
+  },
+  previewLocationContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    backgroundColor: Colors.gray[50],
+    borderRadius: BorderRadius.lg,
+  },
+  previewLocationText: {
+    fontSize: FontSizes.base,
+    color: Colors.text.secondary,
+    flex: 1,
+  },
+  previewSectionTitle: {
+    fontSize: FontSizes.lg,
+    fontWeight: '600',
+    color: Colors.text.primary,
+    marginBottom: Spacing.sm,
+  },
+  previewDescriptionContainer: {
+    paddingVertical: Spacing.sm,
+  },
+  previewDescriptionText: {
+    fontSize: FontSizes.base,
+    color: Colors.text.secondary,
+    lineHeight: 22,
+  },
+  previewExtraFeaturesContainer: {
+    paddingVertical: Spacing.sm,
+    borderTopWidth: 1,
+    borderTopColor: Colors.gray[100],
+  },
+  previewExtraFeaturesGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.xs,
+  },
+  previewExtraFeatureBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.xs,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: Spacing.xs,
+    backgroundColor: Colors.success[50],
+    borderRadius: BorderRadius.full,
+  },
+  previewExtraFeatureBadgeText: {
+    fontSize: FontSizes.xs,
+    color: Colors.success[700],
+    fontWeight: '500',
+  },
+  previewPeopleContainer: {
+    paddingVertical: Spacing.sm,
+    borderTopWidth: 1,
+    borderTopColor: Colors.gray[100],
+  },
+  previewPeopleGrid: {
+    gap: Spacing.sm,
+  },
+  previewPersonItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.md,
+    padding: Spacing.sm,
+    backgroundColor: Colors.gray[50],
+    borderRadius: BorderRadius.lg,
+  },
+  previewPersonAvatar: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+  },
+  previewPersonInfo: {
+    flex: 1,
+  },
+  previewPersonName: {
+    fontSize: FontSizes.base,
+    fontWeight: '600',
+    color: Colors.text.primary,
+    marginBottom: Spacing.xs,
+  },
+  previewPersonRole: {
+    fontSize: FontSizes.sm,
+    color: Colors.text.secondary,
+  },
+  previewActionsContainer: {
+    flexDirection: 'row',
+    gap: Spacing.md,
+    marginTop: Spacing.xl,
+    marginBottom: Spacing.tabBarHeight + Spacing.lg,
+  },
+  previewBackButton: {
+    flex: 1,
+    borderRadius: BorderRadius.md,
+    overflow: 'hidden',
+  },
+  previewBackButtonGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: Spacing.md,
+    gap: Spacing.sm,
+  },
+  previewBackButtonText: {
+    fontSize: FontSizes.base,
+    color: Colors.text.secondary,
+    fontWeight: '600',
+  },
+  previewPublishButton: {
+    flex: 2,
+    borderRadius: BorderRadius.md,
+    overflow: 'hidden',
+  },
+  previewPublishButtonGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: Spacing.md,
+    gap: Spacing.sm,
+  },
+  previewPublishButtonText: {
+    fontSize: FontSizes.base,
+    color: Colors.text.onPrimary,
     fontWeight: '600',
   },
 } as const); 
