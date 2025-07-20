@@ -1,4 +1,5 @@
-import { BorderRadius, Colors, FontSizes, Shadows, Spacing } from '@/constants/Theme';
+import { BorderRadius, FontSizes, Shadows, Spacing } from '@/constants/Theme';
+import { Colors } from '@/constants/Colors';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
@@ -119,7 +120,7 @@ export default function CustomersScreen() {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: Colors.primary[900] }]}>
       <LinearGradient
-        colors={[Colors.background, Colors.primary[50]]}
+        colors={[Colors.background, Colors.primary[100]]}
         style={styles.gradient}
       >
         {/* Header */}
@@ -342,8 +343,6 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.md,
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm + 2,
-    borderWidth: 1,
-    borderColor: Colors.primary[200],
   },
   searchInput: {
     flex: 1,
@@ -387,8 +386,6 @@ const styles = StyleSheet.create({
   customerCardGradient: {
     borderRadius: BorderRadius.lg,
     padding: Spacing.md,
-    borderWidth: 1,
-    borderColor: Colors.primary[200],
   },
   customerHeader: {
     flexDirection: 'row',

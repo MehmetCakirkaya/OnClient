@@ -1,4 +1,5 @@
-import { BorderRadius, Colors, FontSizes, Shadows, Spacing } from '@/constants/Theme';
+import { BorderRadius, FontSizes, Shadows, Spacing } from '@/constants/Theme';
+import { Colors } from '@/constants/Colors';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
@@ -60,7 +61,7 @@ export default function HomeScreen() {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: Colors.primary[900] }]}>
       <LinearGradient
-        colors={[Colors.background, Colors.primary[50]]}
+        colors={[Colors.background, Colors.primary[100]]}
         style={styles.gradient}
       >
         <ScrollView 
