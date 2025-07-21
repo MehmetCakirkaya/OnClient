@@ -3,10 +3,13 @@ import { Colors } from '@/constants/Colors';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
-import { SafeAreaView, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View, Alert, Image, ViewStyle, TextStyle } from 'react-native';
+import React, { useState, useLayoutEffect } from 'react';
+import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View, Alert, Image, ViewStyle, TextStyle, Modal } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import MapView, { Marker } from 'react-native-maps';
+import ImageViewing from 'react-native-image-viewing';
+import { FlatList, Dimensions } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function AddListingScreen() {
   const router = useRouter();
@@ -16,6 +19,16 @@ export default function AddListingScreen() {
     title: '',
     description: '',
     address: '',
+    houseType: '', // Ev türü (villa, daire vs)
+    squareMeters: '', // Metrekare
+    landSize: '', // Arsa büyüklüğü
+    width: '', // Genişlik
+    bedrooms: '', // Yatak odası sayısı
+    bathrooms: '', // Banyo sayısı
+    toilets: '', // Tuvalet sayısı
+    floor: '', // Kaçıncı kat
+    totalFloors: '', // Kaç katlı bina
+    listingStatus: 'active', // İlan durumu (aktif, pasif, satıldı, taslak)
     roomType: '',
     condition: '',
     yearBuilt: '',
@@ -30,6 +43,12 @@ export default function AddListingScreen() {
   const [showYearDropdown, setShowYearDropdown] = useState(false);
   const [showRentalDropdown, setShowRentalDropdown] = useState(false);
   const [showCurrencyDropdown, setShowCurrencyDropdown] = useState(false);
+  const [showHouseTypeDropdown, setShowHouseTypeDropdown] = useState(false);
+  const [showFloorDropdown, setShowFloorDropdown] = useState(false);
+  const [showTotalFloorsDropdown, setShowTotalFloorsDropdown] = useState(false);
+  const [showBedroomDropdown, setShowBedroomDropdown] = useState(false);
+  const [showBathroomDropdown, setShowBathroomDropdown] = useState(false);
+  const [showToiletDropdown, setShowToiletDropdown] = useState(false);
   const [showLocationModal, setShowLocationModal] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState<{ latitude: number; longitude: number } | null>(null);
   const [showPersonModal, setShowPersonModal] = useState(false);
@@ -42,6 +61,8 @@ export default function AddListingScreen() {
   const [addedCustomers, setAddedCustomers] = useState<string[]>([]);
   const [listingType, setListingType] = useState<'rent' | 'sale'>('rent'); // Kiralık varsayılan
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [isImageViewVisible, setIsImageViewVisible] = useState(false);
+  const [showCancelModal, setShowCancelModal] = useState(false);
 
   // Örnek takım üyeleri
   const teamMembers = [
@@ -99,8 +120,11 @@ export default function AddListingScreen() {
   const handleBackStep = () => {
     if (currentStep > 1) {
       setCurrentStep(prev => prev - 1);
-    } else {
+    } else if (selectedType) {
       setSelectedType(null);
+    } else {
+      // İlan ekleme sayfasından tamamen çık - geri git
+      router.back();
     }
   };
 
@@ -221,6 +245,218 @@ export default function AddListingScreen() {
   console.log('teamMembers count:', teamMembers.length);
   console.log('customers count:', customers.length);
 
+  if (currentStep === 3 && selectedType === 'house') {
+    return (
+      <SafeAreaView style={{ flex: 1, backgroundColor: Colors.primary[100] }}>
+        <ScrollView style={{ flex: 1, backgroundColor: Colors.primary[100] }}>
+          {/* Fotoğraf Slider ve Üst Butonlar */}
+          <View style={{ position: 'relative', width: '100%' }}>
+            <FlatList
+              data={houseData.media}
+              horizontal
+              pagingEnabled
+              showsHorizontalScrollIndicator={false}
+              keyExtractor={(item, index) => index.toString()}
+              onMomentumScrollEnd={e => {
+                const index = Math.round(
+                  e.nativeEvent.contentOffset.x / Dimensions.get('window').width
+                );
+                setCurrentImageIndex(index);
+              }}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  activeOpacity={0.9}
+                  onPress={() => setIsImageViewVisible(true)}
+                  style={{ width: Dimensions.get('window').width, height: 340 }}
+                >
+                  <Image
+                    source={{ uri: item }}
+                    style={{ width: '100%', height: '100%' }}
+                    resizeMode="cover"
+                  />
+                </TouchableOpacity>
+              )}
+              style={{ flexGrow: 0 }}
+              snapToInterval={Dimensions.get('window').width}
+              decelerationRate="fast"
+            />
+            {/* Üstteki Butonlar */}
+            <View style={{ position: 'absolute', top: 40, left: 0, right: 0, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, zIndex: 10 }}>
+              <TouchableOpacity style={{ backgroundColor: 'rgba(0,0,0,0.5)', borderRadius: 20, padding: 8 }} onPress={handleBackStep}>
+                <Ionicons name="arrow-back" size={24} color="#fff" />
+              </TouchableOpacity>
+              <View style={{ flexDirection: 'row', gap: 12 }}>
+                <TouchableOpacity style={{ backgroundColor: 'rgba(0,0,0,0.5)', borderRadius: 20, padding: 8 }}>
+                  <Ionicons name="heart-outline" size={24} color="#fff" />
+                </TouchableOpacity>
+                <TouchableOpacity style={{ backgroundColor: 'rgba(0,0,0,0.5)', borderRadius: 20, padding: 8 }}>
+                  <Ionicons name="share-social-outline" size={24} color="#fff" />
+                </TouchableOpacity>
+              </View>
+            </View>
+            <ImageViewing
+              images={houseData.media.map(uri => ({ uri }))}
+              imageIndex={currentImageIndex}
+              visible={isImageViewVisible}
+              onRequestClose={() => setIsImageViewVisible(false)}
+            />
+          </View>
+          {/* Alt Kutu - Modern Tasarım */}
+          <View
+            style={{
+              marginTop: -40,
+              borderTopLeftRadius: 32,
+              borderTopRightRadius: 32,
+              padding: 24,
+              paddingTop: 40,
+              backgroundColor: Colors.primary[100],
+              minHeight: 500, // Scroll için yeterli alan
+            }}
+          >
+            {/* Başlık ve Fiyat */}
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontSize: 24, fontWeight: '700', color: '#111', marginBottom: 8 }} numberOfLines={2}>
+                  {houseData.title || 'İlan Başlığı'}
+                </Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
+                  {houseData.roomType && (
+                     <View style={{ backgroundColor: '#7c3aed', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4 }}>
+                       <Text style={{ color: '#fff', fontWeight: '600', fontSize: 14 }}>{houseData.roomType}</Text>
+                     </View>
+                  )}
+                  <View style={{ flexDirection: 'row', alignItems: 'center', flexShrink: 1 }}>
+                    <Ionicons name="location-outline" size={16} color={'#555'} style={{ marginRight: 4 }} />
+                    <Text style={{ color: '#333', fontSize: 15 }} numberOfLines={1}>
+                      {houseData.address || 'Konum Bilgisi'}
+                    </Text>
+                  </View>
+                </View>
+              </View>
+              <View style={{ alignItems: 'flex-end', marginLeft: 12 }}>
+                <Text style={{ color: '#111', fontSize: 26, fontWeight: '800' }}>
+                  {houseData.price ? `${houseData.price}${houseData.currency}` : '₺0'}
+                </Text>
+                <Text style={{ color: '#555', fontSize: 16, fontWeight: '500' }}>/ay</Text>
+              </View>
+            </View>
+            
+            <View style={{ borderBottomColor: Colors.gray[300], borderBottomWidth: 1, marginVertical: 20 }} />
+
+            {/* Açıklama */}
+            {houseData.description && (
+              <View style={{ marginBottom: 20 }}>
+                <Text style={{ fontSize: 18, fontWeight: '600', color: '#111', marginBottom: 8 }}>Açıklama</Text>
+                <Text style={{ color: '#444', fontSize: 16, lineHeight: 24 }}>
+                  {houseData.description}
+                </Text>
+              </View>
+            )}
+
+            {/* Detaylar Listesi */}
+            <View style={{ marginBottom: 20 }}>
+              <Text style={{ fontSize: 18, fontWeight: '600', color: '#111', marginBottom: 12 }}>Detaylar</Text>
+              {[
+                { label: 'Metrekare (Net)', value: houseData.squareMeters && `${houseData.squareMeters} m²` },
+                { label: 'Arsa Boyutu', value: houseData.landSize && `${houseData.landSize} m²` },
+                { label: 'Oda Sayısı', value: houseData.bedrooms },
+                { label: 'Banyo Sayısı', value: houseData.bathrooms },
+                { label: 'Tuvalet Sayısı', value: houseData.toilets },
+                { label: 'Bina Tipi', value: houseData.houseType },
+                { label: 'Bulunduğu Kat', value: houseData.floor },
+                { label: 'Toplam Kat', value: houseData.totalFloors },
+                { label: 'Durumu', value: houseData.condition },
+                { label: 'Yapım Yılı', value: houseData.yearBuilt },
+                { label: 'Kiralama Süresi', value: houseData.rentalPeriod },
+              ].filter(item => item.value).map((item, idx) => (
+                <View key={idx} style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#fff', borderRadius: 12, padding: 16, marginBottom: 10 }}>
+                  <Text style={{ color: '#555', fontSize: 16 }}>{item.label}</Text>
+                  <Text style={{ color: '#111', fontSize: 16, fontWeight: '600' }}>{item.value}</Text>
+                </View>
+              ))}
+            </View>
+
+            {/* Ek Özellikler */}
+            {houseData.features && houseData.features.length > 0 && (
+              <View style={{ marginBottom: 20 }}>
+                <Text style={{ fontSize: 18, fontWeight: '600', color: '#111', marginBottom: 12 }}>Ek Özellikler</Text>
+                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
+                  {houseData.features.map((feature, idx) => (
+                    <View key={idx} style={{ backgroundColor: '#fff', borderWidth: 1, borderColor: Colors.gray[300], borderRadius: 20, paddingHorizontal: 14, paddingVertical: 8, flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                       <Ionicons name="checkmark-circle-outline" size={16} color={'#7c3aed'} />
+                      <Text style={{ color: '#333', fontWeight: '500', fontSize: 15 }}>{feature}</Text>
+                    </View>
+                  ))}
+                </View>
+              </View>
+            )}
+
+             {/* Harita */}
+             {houseData.location && (
+              <View style={{ marginBottom: 20 }}>
+                <Text style={{ fontSize: 18, fontWeight: '600', color: '#111', marginBottom: 12 }}>Konum</Text>
+                <View style={{ height: 200, borderRadius: 16, overflow: 'hidden' }}>
+                  <MapView
+                    style={{ flex: 1 }}
+                    initialRegion={{
+                      latitude: houseData.location.latitude,
+                      longitude: houseData.location.longitude,
+                      latitudeDelta: 0.01,
+                      longitudeDelta: 0.01,
+                    }}
+                    scrollEnabled={false}
+                    zoomEnabled={false}
+                  >
+                    <Marker coordinate={houseData.location} />
+                  </MapView>
+                </View>
+              </View>
+            )}
+
+            {/* İlgili Kişiler */}
+            {(addedTeamMembers.length > 0 || addedCustomers.length > 0) && (
+              <View style={{ marginBottom: 28 }}>
+                <Text style={{ fontSize: 18, fontWeight: '600', color: '#111', marginBottom: 12 }}>İlgili Kişiler</Text>
+                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
+                  {addedTeamMembers.map((memberId, idx) => {
+                    const member = teamMembers.find(m => m.id === memberId);
+                    if (!member) return null;
+                    return (
+                      <View key={memberId} style={{ backgroundColor: '#fff', borderWidth: 1, borderColor: '#e5e7eb', borderRadius: 20, paddingHorizontal: 14, paddingVertical: 8, flexDirection: 'row', alignItems: 'center', gap: 6, marginRight: 8, marginBottom: 10 }}>
+                        <Image source={{ uri: member.avatar }} style={{ width: 24, height: 24, borderRadius: 12, marginRight: 6 }} />
+                        <Text style={{ color: '#333', fontWeight: '500', fontSize: 15 }}>{member.name}</Text>
+                      </View>
+                    );
+                  })}
+                  {addedCustomers.map((customerId, idx) => {
+                    const customer = customers.find(c => c.id === customerId);
+                    if (!customer) return null;
+                    return (
+                      <View key={customerId} style={{ backgroundColor: '#f0fdfa', borderWidth: 1, borderColor: '#bae6fd', borderRadius: 20, paddingHorizontal: 14, paddingVertical: 8, flexDirection: 'row', alignItems: 'center', gap: 6, marginRight: 8, marginBottom: 10 }}>
+                        <Image source={{ uri: customer.avatar }} style={{ width: 24, height: 24, borderRadius: 12, marginRight: 6 }} />
+                        <Text style={{ color: '#0e7490', fontWeight: '500', fontSize: 15 }}>{customer.name}</Text>
+                      </View>
+                    );
+                  })}
+                </View>
+              </View>
+            )}
+
+            {/* Butonlar */}
+            <View style={{ flexDirection: 'row', gap: 16, marginTop: 10, marginBottom: 30 }}>
+              <TouchableOpacity style={{ flex: 1, backgroundColor: '#fff', paddingVertical: 16, borderRadius: 14, alignItems: 'center', borderWidth: 1, borderColor: '#e5e7eb' }} onPress={() => setShowCancelModal(true)}>
+                <Text style={{ color: '#333', fontWeight: '700', fontSize: 16 }}>Vazgeç</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={{ flex: 1, backgroundColor: '#7c3aed', paddingVertical: 16, borderRadius: 14, alignItems: 'center' }} onPress={() => router.push('/') }>
+                <Text style={{ color: '#fff', fontWeight: '700', fontSize: 16 }}>Yayınla</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </ScrollView>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: Colors.primary[900] }]}>
       <LinearGradient
@@ -228,26 +464,27 @@ export default function AddListingScreen() {
         style={styles.gradient}
       >
         {/* Header */}
-        <View style={styles.header}>
-          <View style={styles.headerContent}>
-            <TouchableOpacity 
-              onPress={handleBackStep}
-              style={styles.backButton}
-            >
-              <Ionicons name="arrow-back" size={24} color={Colors.text.primary} />
-            </TouchableOpacity>
-            <Text style={styles.title}>
-              {currentStep === 1 ? 'İlan Ekle' : `Aşama ${currentStep}`}
-            </Text>
-            <View style={styles.placeholder} />
+        {currentStep !== 3 && (
+          <View style={styles.header}>
+            <View style={styles.headerContent}>
+              <TouchableOpacity 
+                onPress={handleBackStep}
+                style={styles.backButton}
+              >
+                <Ionicons name="arrow-back" size={24} color={Colors.text.primary} />
+              </TouchableOpacity>
+              <Text style={styles.title}>
+                {currentStep === 1 ? 'İlan Ekle' : `Aşama ${currentStep}`}
+              </Text>
+              <View style={styles.placeholder} />
+            </View>
           </View>
-        </View>
-
+        )}
         {/* Content */}
-        <View style={styles.content}>
+        <View style={[styles.content, { flex: 1 }]}>
 
           {currentStep === 1 && (
-            <>
+            <View style={{ flex: 1, paddingHorizontal: Spacing.lg }}>
               <Text style={styles.stepTitle}>Mülk Türü Seçin</Text>
               <Text style={styles.stepSubtitle}>
                 Hangi türde mülk ilanı eklemek istiyorsunuz?
@@ -330,7 +567,7 @@ export default function AddListingScreen() {
               </LinearGradient>
             </TouchableOpacity>
           </View>
-            </>
+            </View>
           )}
 
           {currentStep === 2 && selectedType === 'house' && (
@@ -417,6 +654,293 @@ export default function AddListingScreen() {
                 />
               </View>
 
+              {/* Ev Türü */}
+              <View style={styles.inputContainer}>
+                <Text style={styles.inputLabel}>Ev Türü</Text>
+                <TouchableOpacity
+                  style={styles.dropdownButton}
+                  onPress={() => setShowHouseTypeDropdown(!showHouseTypeDropdown)}
+                >
+                  <Text style={[
+                    styles.dropdownButtonText,
+                    !houseData.houseType && styles.dropdownPlaceholder
+                  ]}>
+                    {houseData.houseType || 'Ev türünü seçin'}
+                  </Text>
+                  <Ionicons 
+                    name={showHouseTypeDropdown ? "chevron-up" : "chevron-down"} 
+                    size={20} 
+                    color={Colors.gray[500]} 
+                  />
+                </TouchableOpacity>
+                
+                {showHouseTypeDropdown && (
+                  <View style={styles.dropdownList}>
+                    {['Daire', 'Villa', 'Müstakil Ev', 'Dubleks', 'Tripleks', 'Bahçeli Daire', 'Penthouse'].map((type) => (
+                      <TouchableOpacity
+                        key={type}
+                        style={styles.dropdownItem}
+                        onPress={() => {
+                          setHouseData(prev => ({ ...prev, houseType: type }));
+                          setShowHouseTypeDropdown(false);
+                        }}
+                      >
+                        <Text style={styles.dropdownItemText}>{type}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                )}
+              </View>
+
+              {/* Evin Metrekaresi */}
+              <View style={styles.inputContainer}>
+                <Text style={styles.inputLabel}>Evin Metrekaresi</Text>
+                <TextInput
+                  style={styles.textInput}
+                  placeholder="Örn: 120"
+                  placeholderTextColor={Colors.gray[400]}
+                  value={houseData.squareMeters}
+                  onChangeText={(text) => setHouseData(prev => ({ ...prev, squareMeters: text }))}
+                  keyboardType="numeric"
+                />
+              </View>
+
+              {/* Arsa Büyüklüğü */}
+              <View style={styles.inputContainer}>
+                <Text style={styles.inputLabel}>Arsa Büyüklüğü (m²)</Text>
+                <TextInput
+                  style={styles.textInput}
+                  placeholder="Örn: 500"
+                  placeholderTextColor={Colors.gray[400]}
+                  value={houseData.landSize}
+                  onChangeText={(text) => setHouseData(prev => ({ ...prev, landSize: text }))}
+                  keyboardType="numeric"
+                />
+              </View>
+
+              {/* Yatak Odası Sayısı */}
+              <View style={styles.inputContainer}>
+                <Text style={styles.inputLabel}>Yatak Odası Sayısı</Text>
+                <TouchableOpacity
+                  style={styles.dropdownButton}
+                  onPress={() => setShowBedroomDropdown(!showBedroomDropdown)}
+                >
+                  <Text style={[
+                    styles.dropdownButtonText,
+                    !houseData.bedrooms && styles.dropdownPlaceholder
+                  ]}>
+                    {houseData.bedrooms || 'Yatak odası sayısı seçin'}
+                  </Text>
+                  <Ionicons 
+                    name={showBedroomDropdown ? "chevron-up" : "chevron-down"} 
+                    size={20} 
+                    color={Colors.gray[500]} 
+                  />
+                </TouchableOpacity>
+                
+                {showBedroomDropdown && (
+                  <View style={styles.dropdownList}>
+                    {['1', '2', '3', '4', '5', '6+'].map((count) => (
+                      <TouchableOpacity
+                        key={count}
+                        style={styles.dropdownItem}
+                        onPress={() => {
+                          setHouseData(prev => ({ ...prev, bedrooms: count }));
+                          setShowBedroomDropdown(false);
+                        }}
+                      >
+                        <Text style={styles.dropdownItemText}>{count}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                )}
+              </View>
+
+              {/* Banyo Sayısı */}
+              <View style={styles.inputContainer}>
+                <Text style={styles.inputLabel}>Banyo Sayısı</Text>
+                <TouchableOpacity
+                  style={styles.dropdownButton}
+                  onPress={() => setShowBathroomDropdown(!showBathroomDropdown)}
+                >
+                  <Text style={[
+                    styles.dropdownButtonText,
+                    !houseData.bathrooms && styles.dropdownPlaceholder
+                  ]}>
+                    {houseData.bathrooms || 'Banyo sayısı seçin'}
+                  </Text>
+                  <Ionicons 
+                    name={showBathroomDropdown ? "chevron-up" : "chevron-down"} 
+                    size={20} 
+                    color={Colors.gray[500]} 
+                  />
+                </TouchableOpacity>
+                
+                {showBathroomDropdown && (
+                  <View style={styles.dropdownList}>
+                    {['1', '2', '3', '4', '5+'].map((count) => (
+                      <TouchableOpacity
+                        key={count}
+                        style={styles.dropdownItem}
+                        onPress={() => {
+                          setHouseData(prev => ({ ...prev, bathrooms: count }));
+                          setShowBathroomDropdown(false);
+                        }}
+                      >
+                        <Text style={styles.dropdownItemText}>{count}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                )}
+              </View>
+
+              {/* Tuvalet Sayısı */}
+              <View style={styles.inputContainer}>
+                <Text style={styles.inputLabel}>Tuvalet Sayısı</Text>
+                <TouchableOpacity
+                  style={styles.dropdownButton}
+                  onPress={() => setShowToiletDropdown(!showToiletDropdown)}
+                >
+                  <Text style={[
+                    styles.dropdownButtonText,
+                    !houseData.toilets && styles.dropdownPlaceholder
+                  ]}>
+                    {houseData.toilets || 'Tuvalet sayısı seçin'}
+                  </Text>
+                  <Ionicons 
+                    name={showToiletDropdown ? "chevron-up" : "chevron-down"} 
+                    size={20} 
+                    color={Colors.gray[500]} 
+                  />
+                </TouchableOpacity>
+                
+                {showToiletDropdown && (
+                  <View style={styles.dropdownList}>
+                    {['1', '2', '3', '4', '5+'].map((count) => (
+                      <TouchableOpacity
+                        key={count}
+                        style={styles.dropdownItem}
+                        onPress={() => {
+                          setHouseData(prev => ({ ...prev, toilets: count }));
+                          setShowToiletDropdown(false);
+                        }}
+                      >
+                        <Text style={styles.dropdownItemText}>{count}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                )}
+              </View>
+
+              {/* Kaçıncı Kat */}
+              <View style={styles.inputContainer}>
+                <Text style={styles.inputLabel}>Kaçıncı Kat</Text>
+                <TouchableOpacity
+                  style={styles.dropdownButton}
+                  onPress={() => setShowFloorDropdown(!showFloorDropdown)}
+                >
+                  <Text style={[
+                    styles.dropdownButtonText,
+                    !houseData.floor && styles.dropdownPlaceholder
+                  ]}>
+                    {houseData.floor || 'Kat seçin'}
+                  </Text>
+                  <Ionicons 
+                    name={showFloorDropdown ? "chevron-up" : "chevron-down"} 
+                    size={20} 
+                    color={Colors.gray[500]} 
+                  />
+                </TouchableOpacity>
+                
+                {showFloorDropdown && (
+                  <View style={styles.dropdownList}>
+                    {['Bodrum', 'Zemin', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10+'].map((floor) => (
+                      <TouchableOpacity
+                        key={floor}
+                        style={styles.dropdownItem}
+                        onPress={() => {
+                          setHouseData(prev => ({ ...prev, floor: floor }));
+                          setShowFloorDropdown(false);
+                        }}
+                      >
+                        <Text style={styles.dropdownItemText}>{floor}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                )}
+              </View>
+
+              {/* Kaç Katlı Bina */}
+              <View style={styles.inputContainer}>
+                <Text style={styles.inputLabel}>Kaç Katlı Bina</Text>
+                <TouchableOpacity
+                  style={styles.dropdownButton}
+                  onPress={() => setShowTotalFloorsDropdown(!showTotalFloorsDropdown)}
+                >
+                  <Text style={[
+                    styles.dropdownButtonText,
+                    !houseData.totalFloors && styles.dropdownPlaceholder
+                  ]}>
+                    {houseData.totalFloors || 'Kat sayısı seçin'}
+                  </Text>
+                  <Ionicons 
+                    name={showTotalFloorsDropdown ? "chevron-up" : "chevron-down"} 
+                    size={20} 
+                    color={Colors.gray[500]} 
+                  />
+                </TouchableOpacity>
+                
+                {showTotalFloorsDropdown && (
+                  <View style={styles.dropdownList}>
+                    {['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12+'].map((floors) => (
+                      <TouchableOpacity
+                        key={floors}
+                        style={styles.dropdownItem}
+                        onPress={() => {
+                          setHouseData(prev => ({ ...prev, totalFloors: floors }));
+                          setShowTotalFloorsDropdown(false);
+                        }}
+                      >
+                        <Text style={styles.dropdownItemText}>{floors}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                )}
+              </View>
+
+              {/* İlan Durumu */}
+              <View style={styles.inputContainer}>
+                <Text style={styles.inputLabel}>İlan Durumu</Text>
+                <View style={styles.listingStatusGrid}>
+                  {[
+                    { value: 'active', label: 'Aktif', color: Colors.success[500] },
+                    { value: 'passive', label: 'Pasif', color: Colors.warning },
+                    { value: 'sold', label: 'Satıldı', color: Colors.error },
+                    { value: 'draft', label: 'Taslak', color: Colors.gray[500] }
+                  ].map((status) => (
+                    <TouchableOpacity
+                      key={status.value}
+                      style={[
+                        styles.listingStatusGridButton,
+                        houseData.listingStatus === status.value && styles.listingStatusGridButtonSelected
+                      ]}
+                      onPress={() => setHouseData(prev => ({ ...prev, listingStatus: status.value }))}
+                    >
+                      <View style={[
+                        styles.listingStatusDot,
+                        { backgroundColor: status.color }
+                      ]} />
+                      <Text style={[
+                        styles.listingStatusGridText,
+                        houseData.listingStatus === status.value && styles.listingStatusGridTextSelected
+                      ]}>
+                        {status.label}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+
               {/* Konum */}
               <View style={styles.inputContainer}>
                 <Text style={styles.inputLabel}>Konum</Text>
@@ -473,13 +997,13 @@ export default function AddListingScreen() {
                     <TouchableOpacity
                       key={condition}
                       style={[
-                        styles.conditionButton,
+                        styles.conditionButtonCompact,
                         houseData.condition === condition && styles.conditionButtonSelected
                       ]}
                       onPress={() => setHouseData(prev => ({ ...prev, condition: condition }))}
                     >
                       <Text style={[
-                        styles.conditionText,
+                        styles.conditionTextCompact,
                         houseData.condition === condition && styles.conditionTextSelected
                       ]}>
                         {condition}
@@ -765,250 +1289,6 @@ export default function AddListingScreen() {
             </ScrollView>
           )}
 
-          {/* Step 3: Önizleme */}
-          {currentStep === 3 && selectedType === 'house' && (
-            <ScrollView 
-              showsVerticalScrollIndicator={false}
-              contentContainerStyle={styles.scrollContent}
-            >
-              <Text style={styles.stepTitle}>İlan Önizlemesi</Text>
-              <Text style={styles.stepSubtitle}>
-                İlanınızın nasıl görüneceğini kontrol edin
-              </Text>
-
-              {/* Fotoğraf Slider */}
-              {houseData.media.length > 0 && (
-                <View style={styles.previewImageContainer}>
-                  <View style={styles.imageSlider}>
-                    <Image 
-                      source={{ uri: houseData.media[currentImageIndex] }} 
-                      style={styles.previewMainImage}
-                      resizeMode="cover"
-                    />
-                    
-                    {/* Slider Dots */}
-                    {houseData.media.length > 1 && (
-                      <View style={styles.sliderDots}>
-                        {houseData.media.map((_, index) => (
-                          <TouchableOpacity
-                            key={index}
-                            style={[
-                              styles.sliderDot,
-                              index === currentImageIndex && styles.sliderDotActive
-                            ]}
-                            onPress={() => setCurrentImageIndex(index)}
-                          />
-                        ))}
-                      </View>
-                    )}
-
-                    {/* Slider Navigation */}
-                    {houseData.media.length > 1 && (
-                      <>
-                        <TouchableOpacity
-                          style={[styles.sliderNav, styles.sliderNavLeft]}
-                          onPress={() => setCurrentImageIndex(prev => 
-                            prev === 0 ? houseData.media.length - 1 : prev - 1
-                          )}
-                        >
-                          <Ionicons name="chevron-back" size={24} color="white" />
-                        </TouchableOpacity>
-                        
-                        <TouchableOpacity
-                          style={[styles.sliderNav, styles.sliderNavRight]}
-                          onPress={() => setCurrentImageIndex(prev => 
-                            prev === houseData.media.length - 1 ? 0 : prev + 1
-                          )}
-                        >
-                          <Ionicons name="chevron-forward" size={24} color="white" />
-                        </TouchableOpacity>
-                      </>
-                    )}
-                  </View>
-
-                  {/* Thumbnail Gallery */}
-                  <ScrollView 
-                    horizontal 
-                    showsHorizontalScrollIndicator={false}
-                    style={styles.thumbnailGallery}
-                  >
-                    {houseData.media.map((media, index) => (
-                      <TouchableOpacity
-                        key={index}
-                        style={[
-                          styles.thumbnail,
-                          index === currentImageIndex && styles.thumbnailActive
-                        ]}
-                        onPress={() => setCurrentImageIndex(index)}
-                      >
-                        <Image 
-                          source={{ uri: media }} 
-                          style={styles.thumbnailImage}
-                          resizeMode="cover"
-                        />
-                      </TouchableOpacity>
-                    ))}
-                  </ScrollView>
-                </View>
-              )}
-
-                             {/* İlan Detayları */}
-               <View style={styles.previewDetailsContainer}>
-                 {/* Başlık, Tip ve Özellikler */}
-                 <View style={styles.previewHeader}>
-                   <View style={styles.previewTitleContainer}>
-                     <Text style={styles.previewTitle}>{houseData.title || 'İlan Başlığı'}</Text>
-                     <View style={styles.previewHeaderRow}>
-                       <View style={[
-                         styles.previewTypeBadge,
-                         listingType === 'rent' ? styles.previewTypeRent : styles.previewTypeSale
-                       ]}>
-                         <Text style={styles.previewTypeText}>
-                           {listingType === 'rent' ? 'Kiralık' : 'Satılık'}
-                         </Text>
-                       </View>
-                       
-                       {/* Özellikler Badge'leri */}
-                       <View style={styles.previewFeaturesBadgeContainer}>
-                         {houseData.roomType && (
-                           <View style={styles.previewFeatureBadge}>
-                             <Ionicons name="bed" size={12} color={Colors.primary[600]} />
-                             <Text style={styles.previewFeatureBadgeText}>{houseData.roomType}</Text>
-                           </View>
-                         )}
-                         {houseData.condition && (
-                           <View style={styles.previewFeatureBadge}>
-                             <Ionicons name="home" size={12} color={Colors.primary[600]} />
-                             <Text style={styles.previewFeatureBadgeText}>{houseData.condition}</Text>
-                           </View>
-                         )}
-                         {houseData.yearBuilt && (
-                           <View style={styles.previewFeatureBadge}>
-                             <Ionicons name="time" size={12} color={Colors.primary[600]} />
-                             <Text style={styles.previewFeatureBadgeText}>{houseData.yearBuilt} yıl</Text>
-                           </View>
-                         )}
-                         {houseData.rentalPeriod && (
-                           <View style={styles.previewFeatureBadge}>
-                             <Ionicons name="calendar" size={12} color={Colors.primary[600]} />
-                             <Text style={styles.previewFeatureBadgeText}>{houseData.rentalPeriod}</Text>
-                           </View>
-                         )}
-                       </View>
-                     </View>
-                   </View>
-                   <Text style={styles.previewPrice}>
-                     {houseData.price ? `${houseData.price} ${houseData.currency}` : 'Fiyat Belirtilmemiş'}
-                   </Text>
-                 </View>
-
-                 {/* Konum */}
-                 {houseData.location && (
-                   <View style={styles.previewLocationContainer}>
-                     <Ionicons name="location" size={16} color={Colors.primary[600]} />
-                     <Text style={styles.previewLocationText}>
-                       {houseData.address || 'Konum seçildi'}
-                     </Text>
-                   </View>
-                 )}
-
-                 {/* Açıklama */}
-                 {houseData.description && (
-                   <View style={styles.previewDescriptionContainer}>
-                     <Text style={styles.previewDescriptionText}>{houseData.description}</Text>
-                   </View>
-                 )}
-
-                 {/* Ek Özellikler */}
-                 {houseData.features.length > 0 && (
-                   <View style={styles.previewExtraFeaturesContainer}>
-                     <Text style={styles.previewSectionTitle}>Ek Özellikler</Text>
-                     <View style={styles.previewExtraFeaturesGrid}>
-                       {houseData.features.map((feature, index) => (
-                         <View key={index} style={styles.previewExtraFeatureBadge}>
-                           <Ionicons name="checkmark-circle" size={12} color={Colors.success[600]} />
-                           <Text style={styles.previewExtraFeatureBadgeText}>{feature}</Text>
-                         </View>
-                       ))}
-                     </View>
-                   </View>
-                 )}
-
-                 {/* Seçilen Kişiler */}
-                 {(addedTeamMembers.length > 0 || addedCustomers.length > 0) && (
-                   <View style={styles.previewPeopleContainer}>
-                     <Text style={styles.previewSectionTitle}>İlgili Kişiler</Text>
-                     <View style={styles.previewPeopleGrid}>
-                       {addedTeamMembers.map((memberId) => {
-                         const member = teamMembers.find(m => m.id === memberId);
-                         if (!member) return null;
-                         return (
-                           <View key={memberId} style={styles.previewPersonItem}>
-                             <Image source={{ uri: member.avatar }} style={styles.previewPersonAvatar} />
-                             <View style={styles.previewPersonInfo}>
-                               <Text style={styles.previewPersonName}>{member.name}</Text>
-                               <Text style={styles.previewPersonRole}>{member.role}</Text>
-                             </View>
-                           </View>
-                         );
-                       })}
-                       {addedCustomers.map((customerId) => {
-                         const customer = customers.find(c => c.id === customerId);
-                         if (!customer) return null;
-                         return (
-                           <View key={customerId} style={styles.previewPersonItem}>
-                             <Image source={{ uri: customer.avatar }} style={styles.previewPersonAvatar} />
-                             <View style={styles.previewPersonInfo}>
-                               <Text style={styles.previewPersonName}>{customer.name}</Text>
-                               <Text style={styles.previewPersonRole}>{customer.role}</Text>
-                             </View>
-                           </View>
-                         );
-                       })}
-                     </View>
-                   </View>
-                 )}
-               </View>
-
-              {/* Aksiyon Butonları */}
-              <View style={styles.previewActionsContainer}>
-                <TouchableOpacity
-                  style={styles.previewBackButton}
-                  onPress={handleBackStep}
-                >
-                  <LinearGradient
-                    colors={[Colors.gray[100], Colors.gray[200]]}
-                    style={styles.previewBackButtonGradient}
-                  >
-                    <Ionicons name="arrow-back" size={20} color={Colors.text.secondary} />
-                    <Text style={styles.previewBackButtonText}>Geri</Text>
-                  </LinearGradient>
-                </TouchableOpacity>
-                
-                <TouchableOpacity
-                  style={styles.previewPublishButton}
-                  onPress={() => {
-                    console.log('İlan yayınlanıyor:', {
-                      listingType,
-                      houseData,
-                      addedTeamMembers,
-                      addedCustomers
-                    });
-                    // Burada ilan yayınlama işlemi yapılacak
-                  }}
-                >
-                  <LinearGradient
-                    colors={[Colors.success[500], Colors.success[600]]}
-                    style={styles.previewPublishButtonGradient}
-                  >
-                    <Ionicons name="checkmark" size={20} color="white" />
-                    <Text style={styles.previewPublishButtonText}>İlanı Yayınla</Text>
-                  </LinearGradient>
-                </TouchableOpacity>
-              </View>
-            </ScrollView>
-          )}
-
           {/* Konum Seçimi Modal */}
           {showLocationModal && (
             <View style={styles.modalOverlay}>
@@ -1082,6 +1362,29 @@ export default function AddListingScreen() {
             </View>
           )}
 
+          {/* Vazgeç Confirm Modal */}
+          <Modal
+            visible={showCancelModal}
+            transparent
+            animationType="fade"
+            onRequestClose={() => setShowCancelModal(false)}
+          >
+            <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.3)', justifyContent: 'center', alignItems: 'center' }}>
+              <View style={{ backgroundColor: '#fff', borderRadius: 18, padding: 28, width: 320, alignItems: 'center' }}>
+                <Text style={{ fontSize: 18, fontWeight: '700', color: '#111', marginBottom: 16, textAlign: 'center' }}>
+                  Değişikliklerden vazgeçilecek. Onaylıyor musunuz?
+                </Text>
+                <View style={{ flexDirection: 'row', gap: 16, marginTop: 10 }}>
+                  <TouchableOpacity style={{ flex: 1, backgroundColor: '#e5e7eb', paddingVertical: 12, borderRadius: 10, alignItems: 'center' }} onPress={() => setShowCancelModal(false)}>
+                    <Text style={{ color: '#333', fontWeight: '700', fontSize: 16 }}>Hayır</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={{ flex: 1, backgroundColor: '#7c3aed', paddingVertical: 12, borderRadius: 10, alignItems: 'center' }} onPress={() => { setShowCancelModal(false); handleBackStep(); }}>
+                    <Text style={{ color: '#fff', fontWeight: '700', fontSize: 16 }}>Evet</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </View>
+          </Modal>
 
         </View>
       </LinearGradient>
@@ -1305,11 +1608,12 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    paddingHorizontal: Spacing.lg,
-    paddingTop: Spacing.xl,
+    // paddingHorizontal: Spacing.lg,
+    // paddingTop: Spacing.xl,
   },
   scrollContent: {
-    paddingBottom: Spacing.tabBarHeight + Spacing.xl,
+    // paddingBottom: Spacing.tabBarHeight + Spacing.xl,
+    paddingHorizontal: Spacing.lg,
   },
 
   stepTitle: {
@@ -2026,6 +2330,335 @@ const styles = StyleSheet.create({
   },
   listingTypeTextActive: {
     color: Colors.primary[700],
+    fontWeight: '600',
+  },
+  // Yeni eklenen alanlar için stiller
+  houseTypeContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.sm,
+  },
+  houseTypeButton: {
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    borderRadius: BorderRadius.md,
+    backgroundColor: Colors.gray[100],
+    borderWidth: 1,
+    borderColor: Colors.gray[200],
+    minWidth: 80,
+    alignItems: 'center',
+  },
+  houseTypeButtonSelected: {
+    backgroundColor: Colors.primary[50],
+    borderColor: Colors.primary[400],
+    borderWidth: 2,
+  },
+  houseTypeText: {
+    fontSize: FontSizes.sm,
+    color: Colors.text.secondary,
+    fontWeight: '500',
+  },
+  houseTypeTextSelected: {
+    color: Colors.primary[700],
+    fontWeight: '600',
+  },
+  bedroomContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.sm,
+  },
+  bedroomButton: {
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    borderRadius: BorderRadius.md,
+    backgroundColor: Colors.gray[100],
+    borderWidth: 1,
+    borderColor: Colors.gray[200],
+    minWidth: 50,
+    alignItems: 'center',
+  },
+  bedroomButtonSelected: {
+    backgroundColor: Colors.primary[50],
+    borderColor: Colors.primary[400],
+    borderWidth: 2,
+  },
+  bedroomText: {
+    fontSize: FontSizes.sm,
+    color: Colors.text.secondary,
+    fontWeight: '500',
+  },
+  bedroomTextSelected: {
+    color: Colors.primary[700],
+    fontWeight: '600',
+  },
+  bathroomContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.sm,
+  },
+  bathroomButton: {
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    borderRadius: BorderRadius.md,
+    backgroundColor: Colors.gray[100],
+    borderWidth: 1,
+    borderColor: Colors.gray[200],
+    minWidth: 50,
+    alignItems: 'center',
+  },
+  bathroomButtonSelected: {
+    backgroundColor: Colors.primary[50],
+    borderColor: Colors.primary[400],
+    borderWidth: 2,
+  },
+  bathroomText: {
+    fontSize: FontSizes.sm,
+    color: Colors.text.secondary,
+    fontWeight: '500',
+  },
+  bathroomTextSelected: {
+    color: Colors.primary[700],
+    fontWeight: '600',
+  },
+  floorContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.sm,
+  },
+  floorButton: {
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    borderRadius: BorderRadius.md,
+    backgroundColor: Colors.gray[100],
+    borderWidth: 1,
+    borderColor: Colors.gray[200],
+    minWidth: 50,
+    alignItems: 'center',
+  },
+  floorButtonSelected: {
+    backgroundColor: Colors.primary[50],
+    borderColor: Colors.primary[400],
+    borderWidth: 2,
+  },
+  floorText: {
+    fontSize: FontSizes.sm,
+    color: Colors.text.secondary,
+    fontWeight: '500',
+  },
+  floorTextSelected: {
+    color: Colors.primary[700],
+    fontWeight: '600',
+  },
+  totalFloorsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.sm,
+  },
+  totalFloorsButton: {
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    borderRadius: BorderRadius.md,
+    backgroundColor: Colors.gray[100],
+    borderWidth: 1,
+    borderColor: Colors.gray[200],
+    minWidth: 50,
+    alignItems: 'center',
+  },
+  totalFloorsButtonSelected: {
+    backgroundColor: Colors.primary[50],
+    borderColor: Colors.primary[400],
+    borderWidth: 2,
+  },
+  totalFloorsText: {
+    fontSize: FontSizes.sm,
+    color: Colors.text.secondary,
+    fontWeight: '500',
+  },
+  totalFloorsTextSelected: {
+    color: Colors.primary[700],
+    fontWeight: '600',
+  },
+  listingStatusContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.sm,
+  },
+  listingStatusButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    borderRadius: BorderRadius.md,
+    backgroundColor: Colors.gray[100],
+    borderWidth: 1,
+    borderColor: Colors.gray[200],
+    gap: Spacing.xs,
+  },
+  listingStatusButtonSelected: {
+    backgroundColor: Colors.primary[50],
+    borderColor: Colors.primary[400],
+    borderWidth: 2,
+  },
+  listingStatusDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  listingStatusText: {
+    fontSize: FontSizes.sm,
+    color: Colors.text.secondary,
+    fontWeight: '500',
+  },
+  listingStatusTextSelected: {
+    color: Colors.primary[700],
+    fontWeight: '600',
+  },
+  // Yeni eklenen stiller
+  listingStatusGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.sm,
+  },
+  listingStatusGridButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.sm,
+    borderRadius: BorderRadius.md,
+    backgroundColor: Colors.gray[100],
+    borderWidth: 1,
+    borderColor: Colors.gray[200],
+    gap: Spacing.xs,
+    minWidth: 0,
+  },
+  listingStatusGridButtonSelected: {
+    backgroundColor: Colors.primary[50],
+    borderColor: Colors.primary[400],
+    borderWidth: 2,
+  },
+  listingStatusGridText: {
+    fontSize: FontSizes.xs,
+    color: Colors.text.secondary,
+    fontWeight: '500',
+  },
+  listingStatusGridTextSelected: {
+    color: Colors.primary[700],
+    fontWeight: '600',
+  },
+  conditionButtonCompact: {
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    borderRadius: BorderRadius.md,
+    backgroundColor: Colors.gray[100],
+    borderWidth: 1,
+    borderColor: Colors.gray[200],
+    minWidth: 60,
+    alignItems: 'center',
+  },
+  conditionTextCompact: {
+    fontSize: FontSizes.sm,
+    color: Colors.text.secondary,
+    fontWeight: '500',
+  },
+  toiletContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.sm,
+  },
+  toiletButton: {
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    borderRadius: BorderRadius.md,
+    backgroundColor: Colors.gray[100],
+    borderWidth: 1,
+    borderColor: Colors.gray[200],
+    minWidth: 50,
+    alignItems: 'center',
+  },
+  toiletButtonSelected: {
+    backgroundColor: Colors.primary[50],
+    borderColor: Colors.primary[400],
+    borderWidth: 2,
+  },
+  toiletText: {
+    fontSize: FontSizes.sm,
+    color: Colors.text.secondary,
+    fontWeight: '500',
+  },
+  toiletTextSelected: {
+    color: Colors.primary[700],
+    fontWeight: '600',
+  },
+  // Önizleme sayfası yeni alanlar için stiller
+  previewDetailsSection: {
+    marginBottom: Spacing.lg,
+  },
+  previewDetailsGrid: {
+    gap: Spacing.sm,
+  },
+  previewDetailItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    backgroundColor: Colors.gray[50],
+    borderRadius: BorderRadius.md,
+    gap: Spacing.sm,
+  },
+  previewDetailLabel: {
+    fontSize: FontSizes.sm,
+    color: Colors.text.secondary,
+    fontWeight: '500',
+    minWidth: 80,
+  },
+  previewDetailValue: {
+    fontSize: FontSizes.sm,
+    color: Colors.text.primary,
+    fontWeight: '600',
+  },
+  previewStatusContainer: {
+    marginBottom: Spacing.lg,
+  },
+  previewStatusBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    backgroundColor: Colors.gray[50],
+    borderRadius: BorderRadius.md,
+    gap: Spacing.sm,
+    alignSelf: 'flex-start',
+  },
+  previewStatusActive: {
+    backgroundColor: Colors.success[50],
+    borderWidth: 1,
+    borderColor: Colors.success[200],
+  },
+  previewStatusPassive: {
+    backgroundColor: Colors.warning[50],
+    borderWidth: 1,
+    borderColor: Colors.warning[200],
+  },
+  previewStatusSold: {
+    backgroundColor: Colors.error[50],
+    borderWidth: 1,
+    borderColor: Colors.error[200],
+  },
+  previewStatusDraft: {
+    backgroundColor: Colors.gray[100],
+    borderWidth: 1,
+    borderColor: Colors.gray[300],
+  },
+  previewStatusDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  previewStatusText: {
+    fontSize: FontSizes.sm,
+    color: Colors.text.primary,
     fontWeight: '600',
   },
   // Önizleme sayfası styles

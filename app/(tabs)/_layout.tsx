@@ -46,6 +46,7 @@ export default function TabLayout() {
         options={{
           title: '',
           tabBarIcon: ({ color }) => <IconSymbol size={28} name="plus.circle.fill" color={color} />,
+          tabBarStyle: { display: 'none' }, // Bu sayfada tab bar'ı gizle
         }}
       />
       <Tabs.Screen

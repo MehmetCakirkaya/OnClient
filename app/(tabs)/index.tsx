@@ -46,10 +46,10 @@ export default function HomeScreen() {
   ];
 
   const quickActions = [
-    { title: 'Yeni Müşteri Oluştur', icon: 'person-add', color: Colors.primary[500], onPress: () => console.log('Yeni Müşteri') },
-    { title: 'Kampanya Oluştur', icon: 'megaphone', color: Colors.success[500], onPress: () => console.log('Kampanya') },
-    { title: 'Rapor Al', icon: 'document-text', color: Colors.info, onPress: () => console.log('Rapor') },
-    { title: 'Hatırlatıcı', icon: 'alarm', color: '#f59e0b', onPress: () => router.push('/(modal)/reminders') },
+    { title: 'İlan Ekle', icon: 'add-circle', color: Colors.primary[500], onPress: () => router.push('/(tabs)/add-listing' as any) },
+    { title: 'Yeni Müşteri', icon: 'person-add', color: Colors.success[500], onPress: () => console.log('Yeni Müşteri') },
+    { title: 'Kampanya', icon: 'megaphone', color: Colors.info, onPress: () => console.log('Kampanya') },
+    { title: 'Rapor Al', icon: 'document-text', color: '#f59e0b', onPress: () => console.log('Rapor') },
   ];
 
   const recentCustomers = [

@@ -4,7 +4,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { SafeAreaView, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 interface Customer {
   id: number;
@@ -104,18 +105,32 @@ export default function CustomersScreen() {
       case 'uncertain':
         return 'Belirsiz';
       default:
-        return 'Bilinmiyor';
+        return 'Belirsiz';
     }
   };
 
-  const filteredCustomers = customers.filter(customer => {
-    const matchesSearch = customer.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         customer.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         customer.phone.includes(searchQuery);
-    
-    // TODO: Apply active filters from modal
-    return matchesSearch;
-  });
+  const filteredCustomers = customers.filter(customer => 
+    customer.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    customer.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    customer.phone.includes(searchQuery) ||
+    customer.campaign.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('tr-TR', {
+      day: 'numeric',
+      month: 'short'
+    });
+  };
+
+  const getDaysAgo = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffTime = Math.abs(now.getTime() - date.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return `${diffDays} gün önce`;
+  };
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: Colors.primary[900] }]}>
@@ -144,7 +159,7 @@ export default function CustomersScreen() {
                 )}
               </TouchableOpacity>
               <TouchableOpacity 
-                onPress={() => console.log('Add customer')}
+                onPress={() => router.push('/(modal)/add-customer')}
                 style={styles.addButton}
               >
                 <LinearGradient
@@ -152,141 +167,136 @@ export default function CustomersScreen() {
                   style={styles.addButtonGradient}
                 >
                   <Ionicons name="add" size={20} color="white" />
-                  <Text style={styles.addButtonText}>Ekle</Text>
+                  <Text style={styles.addButtonText}>Müşteri Ekle</Text>
                 </LinearGradient>
               </TouchableOpacity>
             </View>
           </View>
-
-          {/* Search Bar */}
-          <View style={styles.searchContainer}>
-            <LinearGradient
-              colors={[Colors.surface, Colors.primary[50]]}
-              style={styles.searchGradient}
-            >
-              <Ionicons name="search" size={20} color={Colors.gray[500]} />
-              <TextInput
-                style={styles.searchInput}
-                placeholder="Müşteri ara..."
-                placeholderTextColor={Colors.gray[400]}
-                value={searchQuery}
-                onChangeText={setSearchQuery}
-              />
-              {searchQuery.length > 0 && (
-                <TouchableOpacity onPress={() => setSearchQuery('')}>
-                  <Ionicons name="close-circle" size={20} color={Colors.gray[500]} />
-                </TouchableOpacity>
-              )}
-            </LinearGradient>
-          </View>
-
-          {/* Active Filter Tags */}
-          {activeFilters.length > 0 && (
-            <View style={styles.activeFiltersContainer}>
-              <ScrollView 
-                horizontal 
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.activeFiltersContent}
-              >
-                {activeFilters.map((filter, index) => (
-                  <View key={index} style={styles.filterTag}>
-                    <LinearGradient
-                      colors={[Colors.primary[100], Colors.primary[200]]}
-                      style={styles.filterTagGradient}
-                    >
-                      <Text style={styles.filterTagText}>{filter}</Text>
-                      <TouchableOpacity
-                        onPress={() => setActiveFilters(prev => prev.filter((_, i) => i !== index))}
-                        style={styles.filterTagClose}
-                      >
-                        <Ionicons name="close" size={14} color={Colors.primary[600]} />
-                      </TouchableOpacity>
-                    </LinearGradient>
-                  </View>
-                ))}
-              </ScrollView>
-            </View>
-          )}
         </View>
 
-      {/* Customer List */}
-      <ScrollView 
-        style={styles.listContainer}
-        contentContainerStyle={styles.listContent}
-      >
-        {filteredCustomers.length === 0 ? (
-          <View style={styles.emptyContainer}>
-            <Ionicons name="people-outline" size={64} color={Colors.gray[400]} />
-            <Text style={styles.emptyTitle}>
-              {searchQuery ? 'Arama sonucu bulunamadı' : 'Henüz müşteri yok'}
-            </Text>
-            <Text style={styles.emptySubtitle}>
-              {searchQuery ? 'Farklı bir arama terimi deneyin' : 'İlk müşterinizi ekleyin'}
-            </Text>
-          </View>
-        ) : (
-          <View style={styles.listContent}>
-            {filteredCustomers.map((customer) => (
-              <TouchableOpacity
-                key={customer.id}
-                onPress={() => router.push(`/(modal)/customer-detail?id=${customer.id}` as any)}
-                style={styles.customerCard}
-              >
-                <LinearGradient
-                  colors={[Colors.surface, Colors.primary[50]]}
-                  style={styles.customerCardGradient}
-                >
-                  <View style={styles.customerHeader}>
-                    <View style={styles.customerInfo}>
-                      <Text style={styles.customerName}>
-                        {customer.name}
-                      </Text>
-                      <Text style={styles.customerEmail}>{customer.email}</Text>
-                      <Text style={styles.customerPhone}>{customer.phone}</Text>
-                    </View>
-                    <View style={styles.customerMeta}>
-                      <View style={[styles.statusBadge, getStatusStyle(customer.status)]}>
-                        <Text style={[styles.statusText, { color: getStatusStyle(customer.status).color }]}>
-                          {getStatusText(customer.status)}
-                        </Text>
-                      </View>
-                      <Text style={styles.dateText}>
-                        {new Date(customer.createdAt).toLocaleDateString('tr-TR')}
-                      </Text>
-                    </View>
-                  </View>
-
-                  <View style={styles.customerFooter}>
-                    <View style={styles.leftFooter}>
-                      <View style={styles.campaignBadge}>
-                        <Text style={styles.campaignText}>{customer.campaign}</Text>
-                      </View>
-                      {customer.notes > 0 && (
-                        <View style={styles.notesContainer}>
-                          <Ionicons name="document-text" size={14} color={Colors.gray[500]} />
-                          <Text style={styles.notesText}>{customer.notes} not</Text>
-                        </View>
-                      )}
-                    </View>
-                    
-                    <View style={styles.actionsContainer}>
-                      <TouchableOpacity style={styles.actionButtonCall}>
-                        <Ionicons name="call" size={16} color={Colors.success[600]} />
-                      </TouchableOpacity>
-                      <TouchableOpacity style={styles.actionButtonMail}>
-                        <Ionicons name="mail" size={16} color={Colors.primary[600]} />
-                      </TouchableOpacity>
-                      <TouchableOpacity style={styles.actionButtonMore}>
-                        <Ionicons name="chevron-forward" size={16} color={Colors.gray[500]} />
-                      </TouchableOpacity>
-                    </View>
-                  </View>
-                </LinearGradient>
+        {/* Search Bar */}
+        <View style={styles.searchContainer}>
+          <LinearGradient
+            colors={[Colors.surface, Colors.primary[50]]}
+            style={styles.searchGradient}
+          >
+            <Ionicons name="search" size={20} color={Colors.gray[500]} />
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Müşteri ara..."
+              placeholderTextColor={Colors.gray[400]}
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+            />
+            {searchQuery.length > 0 && (
+              <TouchableOpacity onPress={() => setSearchQuery('')}>
+                <Ionicons name="close-circle" size={20} color={Colors.gray[500]} />
               </TouchableOpacity>
-            ))}
+            )}
+          </LinearGradient>
+        </View>
+
+        {/* Active Filters */}
+        {activeFilters.length > 0 && (
+          <View style={styles.filtersContainer}>
+            <ScrollView 
+              horizontal 
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.filtersContent}
+            >
+              {activeFilters.map((filter, index) => (
+                <View key={index} style={styles.filterTag}>
+                  <LinearGradient
+                    colors={[Colors.primary[100], Colors.primary[200]]}
+                    style={styles.filterTagGradient}
+                  >
+                    <Text style={styles.filterTagText}>{filter}</Text>
+                    <TouchableOpacity
+                      onPress={() => setActiveFilters(prev => prev.filter((_, i) => i !== index))}
+                      style={styles.filterTagClose}
+                    >
+                      <Ionicons name="close" size={14} color={Colors.primary[600]} />
+                    </TouchableOpacity>
+                  </LinearGradient>
+                </View>
+              ))}
+            </ScrollView>
           </View>
         )}
-      </ScrollView>
+
+        {/* Customer List */}
+        <ScrollView 
+          style={styles.listContainer}
+          contentContainerStyle={styles.listContent}
+        >
+          {filteredCustomers.length === 0 ? (
+            <View style={styles.emptyContainer}>
+              <Ionicons name="people-outline" size={64} color={Colors.gray[400]} />
+              <Text style={styles.emptyTitle}>Müşteri bulunamadı</Text>
+              <Text style={styles.emptySubtitle}>
+                Arama kriterlerinizi değiştirmeyi deneyin
+              </Text>
+            </View>
+          ) : (
+            <View style={styles.customerList}>
+              {filteredCustomers.map((customer) => (
+                <TouchableOpacity
+                  key={customer.id}
+                  onPress={() => router.push(`/customer/${customer.id}`)}
+                  style={styles.customerCard}
+                >
+                  <LinearGradient
+                    colors={[Colors.surface, Colors.primary[50]]}
+                    style={styles.customerCardGradient}
+                  >
+                    <View style={styles.customerHeader}>
+                      <View style={styles.customerInfo}>
+                        <Text style={styles.customerName}>{customer.name}</Text>
+                        <Text style={styles.customerEmail}>{customer.email}</Text>
+                        <Text style={styles.customerPhone}>{customer.phone}</Text>
+                      </View>
+                      <View style={styles.customerMeta}>
+                        <View style={[styles.statusBadge, getStatusStyle(customer.status)]}>
+                          <Text style={[styles.statusText, { color: getStatusStyle(customer.status).color }]}>
+                            {getStatusText(customer.status)}
+                          </Text>
+                        </View>
+                        <Text style={styles.customerDate}>
+                          {formatDate(customer.createdAt)}
+                        </Text>
+                      </View>
+                    </View>
+                    
+                    <View style={styles.customerDetails}>
+                      <View style={styles.customerCampaign}>
+                        <Ionicons name="megaphone-outline" size={14} color={Colors.primary[600]} />
+                        <Text style={styles.campaignText}>{customer.campaign}</Text>
+                      </View>
+                      
+                      <View style={styles.customerStats}>
+                        <View style={styles.statItem}>
+                          <Ionicons name="chatbubbles-outline" size={14} color={Colors.gray[500]} />
+                          <Text style={styles.statText}>{customer.notes} not</Text>
+                        </View>
+                        {customer.lastContactDate && (
+                          <View style={styles.statItem}>
+                            <Ionicons name="time-outline" size={14} color={Colors.gray[500]} />
+                            <Text style={styles.statText}>
+                              {getDaysAgo(customer.lastContactDate)}
+                            </Text>
+                          </View>
+                        )}
+                        <TouchableOpacity style={styles.actionButtonMore}>
+                          <Ionicons name="chevron-forward" size={16} color={Colors.gray[500]} />
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                  </LinearGradient>
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
+        </ScrollView>
       </LinearGradient>
     </SafeAreaView>
   );
@@ -316,190 +326,23 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: Colors.text.primary,
   },
-  addButton: {
-    borderRadius: BorderRadius.md,
-    ...Shadows.sm,
-  },
-  addButtonGradient: {
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    borderRadius: BorderRadius.md,
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  addButtonText: {
-    color: Colors.text.onPrimary,
-    fontWeight: '500',
-    marginLeft: Spacing.xs,
-    fontSize: FontSizes.base,
-  },
-  searchContainer: {
-    borderRadius: BorderRadius.md,
-    ...Shadows.sm,
-  },
-  searchGradient: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderRadius: BorderRadius.md,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm + 2,
-  },
-  searchInput: {
-    flex: 1,
-    marginLeft: Spacing.sm + 2,
-    color: Colors.text.primary,
-    fontSize: FontSizes.base,
-  },
-
-  listContainer: {
-    flex: 1,
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.md,
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingVertical: Spacing.xxl + 12,
-  },
-  emptyTitle: {
-    fontSize: FontSizes.lg,
-    fontWeight: '500',
-    color: Colors.text.secondary,
-    marginTop: Spacing.md,
-  },
-  emptySubtitle: {
-    color: Colors.text.light,
-    textAlign: 'center',
-    marginTop: Spacing.sm,
-    fontSize: FontSizes.sm,
-  },
-  listContent: {
-    gap: Spacing.sm + 2,
-    paddingBottom: Spacing.tabBarHeight,
-  },
-  customerCard: {
-    borderRadius: BorderRadius.lg,
-    marginBottom: Spacing.sm + 2,
-    ...Shadows.md,
-  },
-  customerCardGradient: {
-    borderRadius: BorderRadius.lg,
-    padding: Spacing.md,
-  },
-  customerHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: Spacing.sm + 2,
-  },
-  customerInfo: {
-    flex: 1,
-  },
-  customerName: {
-    fontSize: FontSizes.lg,
-    fontWeight: '600',
-    color: Colors.text.primary,
-    marginBottom: Spacing.xs,
-  },
-  customerEmail: {
-    color: Colors.text.secondary,
-    fontSize: FontSizes.sm,
-    marginBottom: 2,
-  },
-  customerPhone: {
-    color: Colors.text.secondary,
-    fontSize: FontSizes.sm,
-  },
-  customerMeta: {
-    alignItems: 'flex-end',
-  },
-  statusBadge: {
-    paddingHorizontal: Spacing.sm + 2,
-    paddingVertical: Spacing.xs,
-    borderRadius: BorderRadius.full,
-    marginBottom: Spacing.sm,
-  },
-  statusText: {
-    fontSize: FontSizes.xs,
-    fontWeight: '500',
-  },
-  dateText: {
-    color: Colors.text.light,
-    fontSize: FontSizes.xs,
-  },
-  customerFooter: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingTop: Spacing.sm + 2,
-    borderTopWidth: 1,
-    borderTopColor: Colors.primary[200],
-  },
-  leftFooter: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  campaignBadge: {
-    backgroundColor: Colors.brand.lightPurple,
-    paddingHorizontal: Spacing.sm + 2,
-    paddingVertical: Spacing.xs,
-    borderRadius: BorderRadius.full,
-  },
-  campaignText: {
-    color: Colors.primary[700],
-    fontSize: FontSizes.xs,
-    fontWeight: '500',
-  },
-  notesContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginLeft: Spacing.sm + 2,
-  },
-  notesText: {
-    color: Colors.text.secondary,
-    fontSize: FontSizes.xs,
-    marginLeft: Spacing.xs,
-  },
-  actionsContainer: {
-    flexDirection: 'row',
-    gap: Spacing.sm,
-  },
-  actionButtonCall: {
-    backgroundColor: Colors.success[100],
-    padding: Spacing.sm,
-    borderRadius: BorderRadius.sm,
-  },
-  actionButtonMail: {
-    backgroundColor: Colors.brand.lightPurple,
-    padding: Spacing.sm,
-    borderRadius: BorderRadius.sm,
-  },
-  actionButtonMore: {
-    backgroundColor: Colors.gray[100],
-    padding: Spacing.sm,
-    borderRadius: BorderRadius.sm,
-  },
-  // Filter-related styles
   headerActions: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.sm,
-    overflow: 'visible',
   },
   filterButton: {
-    position: 'relative',
-    padding: Spacing.sm,
     backgroundColor: Colors.surface,
-    borderRadius: BorderRadius.md,
-    overflow: 'visible',
+    borderRadius: BorderRadius.full,
+    padding: Spacing.sm,
+    position: 'relative',
     ...Shadows.sm,
   },
   filterBadge: {
     position: 'absolute',
-    top: -2,
-    right: -2,
-    backgroundColor: Colors.error,
+    top: -4,
+    right: -4,
+    backgroundColor: Colors.primary[500],
     borderRadius: 10,
     width: 20,
     height: 20,
@@ -507,34 +350,68 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   filterBadgeText: {
-    color: Colors.text.onPrimary,
-    fontSize: FontSizes.xs,
+    color: 'white',
+    fontSize: 10,
+    fontWeight: 'bold',
+  },
+  addButton: {
+    borderRadius: BorderRadius.lg,
+    overflow: 'hidden',
+    ...Shadows.sm,
+  },
+  addButtonGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    gap: Spacing.xs,
+  },
+  addButtonText: {
+    color: 'white',
     fontWeight: '600',
+    fontSize: FontSizes.sm,
   },
-  activeFiltersContainer: {
-    marginTop: Spacing.sm,
+  searchContainer: {
+    paddingHorizontal: Spacing.lg,
+    marginBottom: Spacing.md,
   },
-  activeFiltersContent: {
+  searchGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.md,
+    borderRadius: BorderRadius.lg,
+    gap: Spacing.sm,
+    ...Shadows.sm,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: FontSizes.base,
+    color: Colors.text.primary,
+  },
+  filtersContainer: {
+    paddingBottom: Spacing.md,
+  },
+  filtersContent: {
     paddingHorizontal: Spacing.lg,
     gap: Spacing.sm,
   },
   filterTag: {
-    borderRadius: BorderRadius.md,
+    borderRadius: BorderRadius.full,
     overflow: 'hidden',
-    ...Shadows.sm,
   },
   filterTagGradient: {
-    paddingVertical: Spacing.xs + 2,
-    paddingHorizontal: Spacing.sm,
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: BorderRadius.md,
+    paddingLeft: Spacing.md,
+    paddingRight: Spacing.xs,
+    paddingVertical: Spacing.xs,
+    gap: Spacing.xs,
   },
   filterTagText: {
-    fontSize: FontSizes.sm,
     color: Colors.primary[700],
+    fontSize: FontSizes.sm,
     fontWeight: '500',
-    marginRight: Spacing.xs,
   },
   filterTagClose: {
     backgroundColor: Colors.primary[300],
@@ -543,5 +420,115 @@ const styles = StyleSheet.create({
     height: 24,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  listContainer: {
+    flex: 1,
+  },
+  listContent: {
+    paddingHorizontal: Spacing.lg,
+    paddingBottom: Spacing.tabBarHeight + Spacing.xl,
+  },
+  emptyContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingTop: Spacing.xl * 2,
+  },
+  emptyTitle: {
+    fontSize: FontSizes.xl,
+    fontWeight: 'bold',
+    color: Colors.text.primary,
+    marginTop: Spacing.lg,
+    marginBottom: Spacing.sm,
+  },
+  emptySubtitle: {
+    fontSize: FontSizes.base,
+    color: Colors.text.secondary,
+    textAlign: 'center',
+  },
+  customerList: {
+    gap: Spacing.md,
+  },
+  customerCard: {
+    borderRadius: BorderRadius.lg,
+    overflow: 'hidden',
+    ...Shadows.md,
+  },
+  customerCardGradient: {
+    padding: Spacing.lg,
+  },
+  customerHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: Spacing.md,
+  },
+  customerInfo: {
+    flex: 1,
+  },
+  customerName: {
+    fontSize: FontSizes.lg,
+    fontWeight: 'bold',
+    color: Colors.text.primary,
+    marginBottom: Spacing.xs,
+  },
+  customerEmail: {
+    fontSize: FontSizes.sm,
+    color: Colors.text.secondary,
+    marginBottom: 2,
+  },
+  customerPhone: {
+    fontSize: FontSizes.sm,
+    color: Colors.text.secondary,
+  },
+  customerMeta: {
+    alignItems: 'flex-end',
+    gap: Spacing.xs,
+  },
+  statusBadge: {
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 4,
+    borderRadius: BorderRadius.sm,
+  },
+  statusText: {
+    fontSize: FontSizes.xs,
+    fontWeight: '600',
+  },
+  customerDate: {
+    fontSize: FontSizes.xs,
+    color: Colors.text.secondary,
+  },
+  customerDetails: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  customerCampaign: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.xs,
+    flex: 1,
+  },
+  campaignText: {
+    fontSize: FontSizes.sm,
+    color: Colors.primary[600],
+    fontWeight: '500',
+  },
+  customerStats: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.md,
+  },
+  statItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  statText: {
+    fontSize: FontSizes.xs,
+    color: Colors.text.secondary,
+  },
+  actionButtonMore: {
+    padding: 4,
   },
 }); 

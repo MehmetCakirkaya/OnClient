@@ -4,6 +4,13 @@ export default function ModalLayout() {
   return (
     <Stack>
       <Stack.Screen 
+        name="add-customer" 
+        options={{ 
+          headerShown: false,
+          presentation: 'modal' 
+        }} 
+      />
+      <Stack.Screen 
         name="notification-settings" 
         options={{ 
           headerShown: false,
@@ -33,6 +40,13 @@ export default function ModalLayout() {
       />
       <Stack.Screen 
         name="customer-detail" 
+        options={{ 
+          headerShown: false,
+          presentation: 'modal' 
+        }} 
+      />
+      <Stack.Screen 
+        name="customer-filters" 
         options={{ 
           headerShown: false,
           presentation: 'modal' 

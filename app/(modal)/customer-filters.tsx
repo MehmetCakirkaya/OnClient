@@ -222,7 +222,7 @@ export default function CustomerFiltersModal() {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: Colors.primary[900] }]}>
       <LinearGradient
-        colors={[Colors.background, Colors.primary[50]]}
+        colors={[Colors.background, Colors.primary[100]]}
         style={styles.gradient}
       >
         {/* Header */}
@@ -249,7 +249,7 @@ export default function CustomerFiltersModal() {
                   <LinearGradient
                     colors={filters.statuses.includes(status.id) 
                       ? [status.color, status.color] 
-                      : [Colors.surface, Colors.gray[50]]
+                      : [Colors.surface, Colors.primary[100]]
                     }
                     style={styles.checkboxGradient}
                   >
@@ -284,7 +284,7 @@ export default function CustomerFiltersModal() {
                     onPress={handleStartDateSelect}
                   >
                     <LinearGradient
-                      colors={[Colors.surface, Colors.primary[50]]}
+                      colors={[Colors.surface, Colors.primary[100]]}
                       style={styles.dateFieldGradient}
                     >
                       <Ionicons name="calendar-outline" size={20} color={Colors.gray[500]} />
@@ -312,7 +312,7 @@ export default function CustomerFiltersModal() {
                     onPress={handleEndDateSelect}
                   >
                     <LinearGradient
-                      colors={[Colors.surface, Colors.primary[50]]}
+                      colors={[Colors.surface, Colors.primary[100]]}
                       style={styles.dateFieldGradient}
                     >
                       <Ionicons name="calendar-outline" size={20} color={Colors.gray[500]} />
@@ -347,7 +347,7 @@ export default function CustomerFiltersModal() {
                   <LinearGradient
                     colors={filters.campaigns.includes(campaign) 
                       ? [Colors.primary[500], Colors.primary[600]] 
-                      : [Colors.surface, Colors.primary[50]]
+                      : [Colors.surface, Colors.primary[100]]
                     }
                     style={styles.campaignGradient}
                   >
@@ -377,7 +377,7 @@ export default function CustomerFiltersModal() {
                 <LinearGradient
                   colors={filters.hasNotes === true 
                     ? [Colors.success[500], Colors.success[600]] 
-                    : [Colors.surface, Colors.primary[50]]
+                    : [Colors.surface, Colors.primary[100]]
                   }
                   style={styles.notesGradient}
                 >
@@ -402,7 +402,7 @@ export default function CustomerFiltersModal() {
                 <LinearGradient
                   colors={filters.hasNotes === false 
                     ? [Colors.warning, '#f59e0b'] 
-                    : [Colors.surface, Colors.primary[50]]
+                    : [Colors.surface, Colors.primary[100]]
                   }
                   style={styles.notesGradient}
                 >
