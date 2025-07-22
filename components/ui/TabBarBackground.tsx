@@ -5,8 +5,9 @@ import { LinearGradient } from 'expo-linear-gradient';
 export default function BlurTabBarBackground() {
   return (
     <View style={[StyleSheet.absoluteFill, {
-      backdropFilter: 'blur(20px)', // Web için blur
-      backgroundColor: 'rgba(255, 255, 255, 0.3)', // Daha açık arka plan
+      backgroundColor: 'white',
+      borderTopLeftRadius: 20,
+      borderTopRightRadius: 20,
     }]} />
   );
 }

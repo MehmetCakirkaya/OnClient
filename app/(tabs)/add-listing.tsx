@@ -247,7 +247,7 @@ export default function AddListingScreen() {
   console.log('customers count:', customers.length);
 
   if (currentStep === 3 && selectedType === 'house') {
-    return (
+  return (
       <SafeAreaView style={{ flex: 1, backgroundColor: Colors.primary[100] }}>
         <ScrollView style={{ flex: 1, backgroundColor: Colors.primary[100] }}>
           {/* Fotoğraf Slider ve Üst Butonlar */}
@@ -466,20 +466,20 @@ export default function AddListingScreen() {
       >
         {/* Header */}
         {currentStep !== 3 && (
-          <View style={styles.header}>
-            <View style={styles.headerContent}>
-              <TouchableOpacity 
-                onPress={handleBackStep}
-                style={styles.backButton}
-              >
-                <Ionicons name="arrow-back" size={24} color={Colors.text.primary} />
-              </TouchableOpacity>
-              <Text style={styles.title}>
-                {currentStep === 1 ? 'İlan Ekle' : `Aşama ${currentStep}`}
-              </Text>
-              <View style={styles.placeholder} />
-            </View>
+        <View style={styles.header}>
+          <View style={styles.headerContent}>
+            <TouchableOpacity 
+              onPress={handleBackStep}
+              style={styles.backButton}
+            >
+              <Ionicons name="arrow-back" size={24} color={Colors.text.primary} />
+            </TouchableOpacity>
+            <Text style={styles.title}>
+              {currentStep === 1 ? 'İlan Ekle' : `Aşama ${currentStep}`}
+            </Text>
+            <View style={styles.placeholder} />
           </View>
+        </View>
         )}
         {/* Content */}
         <View style={[styles.content, { flex: 1 }]}>
@@ -1574,8 +1574,8 @@ export default function AddListingScreen() {
       )}
     </SafeAreaView>
   );
-  }
-  
+}
+
 // @ts-ignore - StyleSheet type issues
 const styles = StyleSheet.create({
   container: {

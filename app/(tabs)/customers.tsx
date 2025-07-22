@@ -111,7 +111,7 @@ export default function CustomersScreen() {
 
   const filteredCustomers = customers.filter(customer => 
     customer.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    customer.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         customer.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
     customer.phone.includes(searchQuery) ||
     customer.campaign.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -171,102 +171,102 @@ export default function CustomersScreen() {
                 </LinearGradient>
               </TouchableOpacity>
             </View>
+            </View>
           </View>
-        </View>
 
-        {/* Search Bar */}
-        <View style={styles.searchContainer}>
-          <LinearGradient
-            colors={[Colors.surface, Colors.primary[50]]}
-            style={styles.searchGradient}
-          >
-            <Ionicons name="search" size={20} color={Colors.gray[500]} />
-            <TextInput
-              style={styles.searchInput}
-              placeholder="Müşteri ara..."
-              placeholderTextColor={Colors.gray[400]}
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-            />
-            {searchQuery.length > 0 && (
-              <TouchableOpacity onPress={() => setSearchQuery('')}>
-                <Ionicons name="close-circle" size={20} color={Colors.gray[500]} />
-              </TouchableOpacity>
-            )}
-          </LinearGradient>
-        </View>
+          {/* Search Bar */}
+          <View style={styles.searchContainer}>
+            <LinearGradient
+              colors={[Colors.surface, Colors.primary[50]]}
+              style={styles.searchGradient}
+            >
+              <Ionicons name="search" size={20} color={Colors.gray[500]} />
+              <TextInput
+                style={styles.searchInput}
+                placeholder="Müşteri ara..."
+                placeholderTextColor={Colors.gray[400]}
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+              />
+              {searchQuery.length > 0 && (
+                <TouchableOpacity onPress={() => setSearchQuery('')}>
+                  <Ionicons name="close-circle" size={20} color={Colors.gray[500]} />
+                </TouchableOpacity>
+              )}
+            </LinearGradient>
+          </View>
 
         {/* Active Filters */}
-        {activeFilters.length > 0 && (
+          {activeFilters.length > 0 && (
           <View style={styles.filtersContainer}>
-            <ScrollView 
-              horizontal 
-              showsHorizontalScrollIndicator={false}
+              <ScrollView 
+                horizontal 
+                showsHorizontalScrollIndicator={false}
               contentContainerStyle={styles.filtersContent}
-            >
-              {activeFilters.map((filter, index) => (
-                <View key={index} style={styles.filterTag}>
-                  <LinearGradient
-                    colors={[Colors.primary[100], Colors.primary[200]]}
-                    style={styles.filterTagGradient}
-                  >
-                    <Text style={styles.filterTagText}>{filter}</Text>
-                    <TouchableOpacity
-                      onPress={() => setActiveFilters(prev => prev.filter((_, i) => i !== index))}
-                      style={styles.filterTagClose}
+              >
+                {activeFilters.map((filter, index) => (
+                  <View key={index} style={styles.filterTag}>
+                    <LinearGradient
+                      colors={[Colors.primary[100], Colors.primary[200]]}
+                      style={styles.filterTagGradient}
                     >
-                      <Ionicons name="close" size={14} color={Colors.primary[600]} />
-                    </TouchableOpacity>
-                  </LinearGradient>
-                </View>
-              ))}
-            </ScrollView>
-          </View>
-        )}
-
-        {/* Customer List */}
-        <ScrollView 
-          style={styles.listContainer}
-          contentContainerStyle={styles.listContent}
-        >
-          {filteredCustomers.length === 0 ? (
-            <View style={styles.emptyContainer}>
-              <Ionicons name="people-outline" size={64} color={Colors.gray[400]} />
-              <Text style={styles.emptyTitle}>Müşteri bulunamadı</Text>
-              <Text style={styles.emptySubtitle}>
-                Arama kriterlerinizi değiştirmeyi deneyin
-              </Text>
+                      <Text style={styles.filterTagText}>{filter}</Text>
+                      <TouchableOpacity
+                        onPress={() => setActiveFilters(prev => prev.filter((_, i) => i !== index))}
+                        style={styles.filterTagClose}
+                      >
+                        <Ionicons name="close" size={14} color={Colors.primary[600]} />
+                      </TouchableOpacity>
+                    </LinearGradient>
+                  </View>
+                ))}
+              </ScrollView>
             </View>
-          ) : (
+          )}
+
+      {/* Customer List */}
+      <ScrollView 
+        style={styles.listContainer}
+        contentContainerStyle={styles.listContent}
+      >
+        {filteredCustomers.length === 0 ? (
+          <View style={styles.emptyContainer}>
+            <Ionicons name="people-outline" size={64} color={Colors.gray[400]} />
+              <Text style={styles.emptyTitle}>Müşteri bulunamadı</Text>
+            <Text style={styles.emptySubtitle}>
+                Arama kriterlerinizi değiştirmeyi deneyin
+            </Text>
+          </View>
+        ) : (
             <View style={styles.customerList}>
-              {filteredCustomers.map((customer) => (
-                <TouchableOpacity
-                  key={customer.id}
+            {filteredCustomers.map((customer) => (
+              <TouchableOpacity
+                key={customer.id}
                   onPress={() => router.push(`/customer/${customer.id}`)}
-                  style={styles.customerCard}
+                style={styles.customerCard}
+              >
+                <LinearGradient
+                  colors={[Colors.surface, Colors.primary[50]]}
+                  style={styles.customerCardGradient}
                 >
-                  <LinearGradient
-                    colors={[Colors.surface, Colors.primary[50]]}
-                    style={styles.customerCardGradient}
-                  >
-                    <View style={styles.customerHeader}>
-                      <View style={styles.customerInfo}>
+                  <View style={styles.customerHeader}>
+                    <View style={styles.customerInfo}>
                         <Text style={styles.customerName}>{customer.name}</Text>
-                        <Text style={styles.customerEmail}>{customer.email}</Text>
-                        <Text style={styles.customerPhone}>{customer.phone}</Text>
-                      </View>
-                      <View style={styles.customerMeta}>
-                        <View style={[styles.statusBadge, getStatusStyle(customer.status)]}>
-                          <Text style={[styles.statusText, { color: getStatusStyle(customer.status).color }]}>
-                            {getStatusText(customer.status)}
-                          </Text>
-                        </View>
-                        <Text style={styles.customerDate}>
-                          {formatDate(customer.createdAt)}
+                      <Text style={styles.customerEmail}>{customer.email}</Text>
+                      <Text style={styles.customerPhone}>{customer.phone}</Text>
+                    </View>
+                    <View style={styles.customerMeta}>
+                      <View style={[styles.statusBadge, getStatusStyle(customer.status)]}>
+                        <Text style={[styles.statusText, { color: getStatusStyle(customer.status).color }]}>
+                          {getStatusText(customer.status)}
                         </Text>
                       </View>
+                        <Text style={styles.customerDate}>
+                          {formatDate(customer.createdAt)}
+                      </Text>
                     </View>
-                    
+                  </View>
+
                     <View style={styles.customerDetails}>
                       <View style={styles.customerCampaign}>
                         <Ionicons name="megaphone-outline" size={14} color={Colors.primary[600]} />
@@ -284,19 +284,19 @@ export default function CustomersScreen() {
                             <Text style={styles.statText}>
                               {getDaysAgo(customer.lastContactDate)}
                             </Text>
-                          </View>
-                        )}
-                        <TouchableOpacity style={styles.actionButtonMore}>
-                          <Ionicons name="chevron-forward" size={16} color={Colors.gray[500]} />
-                        </TouchableOpacity>
-                      </View>
+                        </View>
+                      )}
+                      <TouchableOpacity style={styles.actionButtonMore}>
+                        <Ionicons name="chevron-forward" size={16} color={Colors.gray[500]} />
+                      </TouchableOpacity>
                     </View>
-                  </LinearGradient>
-                </TouchableOpacity>
-              ))}
-            </View>
-          )}
-        </ScrollView>
+                  </View>
+                </LinearGradient>
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
+      </ScrollView>
       </LinearGradient>
     </SafeAreaView>
   );

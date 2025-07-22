@@ -50,7 +50,7 @@ export default function HomeScreen() {
   const quickActions = [
     { title: 'İlan Ekle', icon: 'add-circle', color: Colors.primary[500], onPress: () => router.push('/(tabs)/add-listing' as any) },
     { title: 'Yeni Müşteri', icon: 'person-add', color: Colors.success[500], onPress: () => router.push('/(modal)/add-customer' as any) },
-    { title: 'Kampanya', icon: 'megaphone', color: Colors.info, onPress: () => console.log('Kampanya') },
+    { title: 'Hatırlatmalar', icon: 'alarm', color: Colors.blue[500], onPress: () => router.push('/(modal)/reminders' as any) },
     { title: 'Rapor Al', icon: 'document-text', color: '#f59e0b', onPress: () => console.log('Rapor') },
   ];
 
@@ -261,7 +261,7 @@ export default function HomeScreen() {
           <View style={styles.recentContainer}>
             <View style={styles.recentHeader}>
               <Text style={styles.sectionTitle}>Yeni Eklenen İlanlar</Text>
-              <TouchableOpacity onPress={() => console.log('Tüm ilanları gör')}>
+              <TouchableOpacity onPress={() => router.push('/(tabs)/listings')}>
                 <Text style={styles.viewAllText}>Tümünü Gör</Text>
               </TouchableOpacity>
             </View>

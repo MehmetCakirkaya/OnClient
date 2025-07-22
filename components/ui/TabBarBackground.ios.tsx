@@ -5,11 +5,11 @@ import { LinearGradient } from 'expo-linear-gradient';
 
 export default function BlurTabBarBackground() {
   return (
-    <BlurView
-      tint="extraLight"
-      intensity={80}
-      style={StyleSheet.absoluteFill}
-    />
+    <View style={[StyleSheet.absoluteFill, {
+      backgroundColor: 'white',
+      borderTopLeftRadius: 20,
+      borderTopRightRadius: 20,
+    }]} />
   );
 }
 
