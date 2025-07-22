@@ -4,8 +4,10 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import React from 'react';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View, FlatList, Image, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+
+const { width } = Dimensions.get('window');
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -47,16 +49,136 @@ export default function HomeScreen() {
 
   const quickActions = [
     { title: 'İlan Ekle', icon: 'add-circle', color: Colors.primary[500], onPress: () => router.push('/(tabs)/add-listing' as any) },
-    { title: 'Yeni Müşteri', icon: 'person-add', color: Colors.success[500], onPress: () => console.log('Yeni Müşteri') },
+    { title: 'Yeni Müşteri', icon: 'person-add', color: Colors.success[500], onPress: () => router.push('/(modal)/add-customer' as any) },
     { title: 'Kampanya', icon: 'megaphone', color: Colors.info, onPress: () => console.log('Kampanya') },
     { title: 'Rapor Al', icon: 'document-text', color: '#f59e0b', onPress: () => console.log('Rapor') },
   ];
 
-  const recentCustomers = [
-    { id: '1', name: 'Ahmet Yılmaz', company: 'Teknoloji A.Ş.', status: 'active', lastContact: '2 saat önce' },
-    { id: '2', name: 'Ayşe Demir', company: 'Pazarlama Ltd.', status: 'pending', lastContact: '1 gün önce' },
-    { id: '3', name: 'Mehmet Kaya', company: 'Satış Corp.', status: 'active', lastContact: '3 gün önce' },
+  const recentListings = [
+    {
+      id: '1',
+      title: 'Lüks Villa',
+      location: 'Beşiktaş, İstanbul',
+      price: '₺2.500.000',
+      type: 'Villa',
+      rooms: '4+1',
+      area: '250 m²',
+      image: 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=400&h=300&fit=crop',
+      rating: 4.8,
+      isNew: true
+    },
+    {
+      id: '2',
+      title: 'Modern Daire',
+      location: 'Kadıköy, İstanbul',
+      price: '₺850.000',
+      type: 'Daire',
+      rooms: '2+1',
+      area: '120 m²',
+      image: 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=400&h=300&fit=crop',
+      rating: 4.6,
+      isNew: true
+    },
+    {
+      id: '3',
+      title: 'Deniz Manzaralı',
+      location: 'Üsküdar, İstanbul',
+      price: '₺1.200.000',
+      type: 'Daire',
+      rooms: '3+1',
+      area: '180 m²',
+      image: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=400&h=300&fit=crop',
+      rating: 4.9,
+      isNew: false
+    },
+    {
+      id: '4',
+      title: 'Bahçeli Ev',
+      location: 'Sarıyer, İstanbul',
+      price: '₺3.200.000',
+      type: 'Müstakil Ev',
+      rooms: '5+2',
+      area: '320 m²',
+      image: 'https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=400&h=300&fit=crop',
+      rating: 4.7,
+      isNew: true
+    },
+    {
+      id: '5',
+      title: 'Şehir Merkezi',
+      location: 'Şişli, İstanbul',
+      price: '₺950.000',
+      type: 'Daire',
+      rooms: '2+1',
+      area: '110 m²',
+      image: 'https://images.unsplash.com/photo-1493809842364-78817add7ffb?w=400&h=300&fit=crop',
+      rating: 4.5,
+      isNew: false
+    },
+    {
+      id: '6',
+      title: 'Tarihi Konak',
+      location: 'Fatih, İstanbul',
+      price: '₺4.500.000',
+      type: 'Konak',
+      rooms: '6+3',
+      area: '450 m²',
+      image: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=400&h=300&fit=crop',
+      rating: 4.8,
+      isNew: true
+    },
   ];
+
+  const renderListingCard = ({ item }: { item: typeof recentListings[0] }) => (
+    <TouchableOpacity 
+      style={styles.listingCard}
+      onPress={() => console.log('İlan detayı:', item.id)}
+    >
+      <View style={styles.listingImageContainer}>
+        <Image source={{ uri: item.image }} style={styles.listingImage} />
+        {item.isNew && (
+          <View style={styles.newBadge}>
+            <Text style={styles.newBadgeText}>YENİ</Text>
+          </View>
+        )}
+        <TouchableOpacity style={styles.favoriteButton}>
+          <Ionicons name="heart-outline" size={20} color={Colors.text.onPrimary} />
+        </TouchableOpacity>
+      </View>
+      
+      <LinearGradient
+        colors={[Colors.surface, Colors.primary[50]]}
+        style={styles.listingInfo}
+      >
+        <View style={styles.listingHeader}>
+          <Text style={styles.listingTitle}>{item.title}</Text>
+          <View style={styles.ratingContainer}>
+            <Ionicons name="star" size={14} color="#FFD700" />
+            <Text style={styles.ratingText}>{item.rating}</Text>
+          </View>
+        </View>
+        
+        <View style={styles.locationContainer}>
+          <Ionicons name="location-outline" size={14} color={Colors.text.secondary} />
+          <Text style={styles.locationText}>{item.location}</Text>
+        </View>
+        
+        <View style={styles.propertyDetails}>
+          <View style={styles.propertyTag}>
+            <Text style={styles.propertyTagText}>{item.rooms}</Text>
+          </View>
+          <View style={styles.propertyTag}>
+            <Text style={styles.propertyTagText}>{item.area}</Text>
+          </View>
+          <View style={styles.propertyTag}>
+            <Text style={styles.propertyTagText}>{item.type}</Text>
+          </View>
+        </View>
+        
+        <Text style={styles.listingPrice}>{item.price}</Text>
+      </LinearGradient>
+    </TouchableOpacity>
+  );
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: Colors.primary[900] }]}>
@@ -75,15 +197,6 @@ export default function HomeScreen() {
               <Text style={styles.welcomeText}>Hoş Geldiniz 👋</Text>
               <Text style={styles.headerTitle}>OnClient Dashboard</Text>
             </View>
-            <TouchableOpacity 
-              style={styles.notificationButton}
-              onPress={() => router.push('/(tabs)/notifications')}
-            >
-              <Ionicons name="notifications" size={24} color={Colors.primary[600]} />
-              <View style={styles.notificationBadge}>
-                <Text style={styles.notificationCount}>3</Text>
-              </View>
-            </TouchableOpacity>
           </View>
 
           {/* Stats Cards */}
@@ -144,51 +257,23 @@ export default function HomeScreen() {
             </View>
           </View>
 
-          {/* Recent Customers */}
+          {/* Recent Listings */}
           <View style={styles.recentContainer}>
             <View style={styles.recentHeader}>
-              <Text style={styles.sectionTitle}>Son Müşteriler</Text>
-              <TouchableOpacity onPress={() => router.push('/(tabs)/customers')}>
+              <Text style={styles.sectionTitle}>Yeni Eklenen İlanlar</Text>
+              <TouchableOpacity onPress={() => console.log('Tüm ilanları gör')}>
                 <Text style={styles.viewAllText}>Tümünü Gör</Text>
               </TouchableOpacity>
             </View>
-            <View style={styles.recentList}>
-              {recentCustomers.map((customer, index) => (
-                <TouchableOpacity 
-                  key={index} 
-                  style={styles.customerCard}
-                  onPress={() => router.push(`/(modal)/customer-detail?id=${customer.id}` as any)}
-                >
-                  <LinearGradient
-                    colors={[Colors.surface, Colors.primary[50]]}
-                    style={styles.customerCardGradient}
-                  >
-                    <View style={styles.customerAvatar}>
-                      <Text style={styles.customerInitials}>
-                        {customer.name.split(' ').map(n => n[0]).join('')}
-                      </Text>
-                    </View>
-                    <View style={styles.customerInfo}>
-                      <Text style={styles.customerName}>{customer.name}</Text>
-                      <Text style={styles.customerCompany}>{customer.company}</Text>
-                      <Text style={styles.customerLastContact}>{customer.lastContact}</Text>
-                    </View>
-                    <View style={styles.customerStatus}>
-                      <View style={[
-                        styles.statusDot,
-                        { backgroundColor: customer.status === 'active' ? Colors.success[500] : Colors.warning }
-                      ]} />
-                      <Text style={[
-                        styles.statusText,
-                        { color: customer.status === 'active' ? Colors.success[600] : Colors.warning }
-                      ]}>
-                        {customer.status === 'active' ? 'Aktif' : 'Bekliyor'}
-                      </Text>
-                    </View>
-                  </LinearGradient>
-                </TouchableOpacity>
-              ))}
-            </View>
+            <FlatList
+              data={recentListings}
+              renderItem={renderListingCard}
+              keyExtractor={(item) => item.id}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.listingsContainer}
+              ItemSeparatorComponent={() => <View style={{ width: Spacing.md }} />}
+            />
           </View>
         </ScrollView>
       </LinearGradient>
@@ -226,29 +311,6 @@ const styles = StyleSheet.create({
     fontSize: FontSizes['2xl'],
     fontWeight: '700',
     color: Colors.text.primary,
-  },
-  notificationButton: {
-    position: 'relative',
-    padding: Spacing.sm,
-    backgroundColor: Colors.surface,
-    borderRadius: BorderRadius.md,
-    ...Shadows.sm,
-  },
-  notificationBadge: {
-    position: 'absolute',
-    top: -2,
-    right: -2,
-    backgroundColor: Colors.error,
-    borderRadius: 10,
-    width: 20,
-    height: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  notificationCount: {
-    color: Colors.text.onPrimary,
-    fontSize: FontSizes.xs,
-    fontWeight: '600',
   },
   statsContainer: {
     marginBottom: Spacing.xl,
@@ -353,63 +415,104 @@ const styles = StyleSheet.create({
     color: Colors.primary[600],
     fontWeight: '600',
   },
-  recentList: {
-    gap: Spacing.md,
+  listingsContainer: {
+    paddingLeft: Spacing.xs,
   },
-  customerCard: {
-    borderRadius: BorderRadius.lg,
+  listingCard: {
+    width: width * 0.7,
+    borderRadius: BorderRadius.xl,
     overflow: 'hidden',
-    ...Shadows.md,
+    backgroundColor: Colors.surface,
+    ...Shadows.lg,
   },
-  customerCardGradient: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  listingImageContainer: {
+    position: 'relative',
+    height: 180,
+  },
+  listingImage: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
+  },
+  newBadge: {
+    position: 'absolute',
+    top: Spacing.sm,
+    left: Spacing.sm,
+    backgroundColor: Colors.success[500],
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: Spacing.xs,
+    borderRadius: BorderRadius.sm,
+  },
+  newBadgeText: {
+    color: Colors.text.onPrimary,
+    fontSize: FontSizes.xs,
+    fontWeight: '700',
+  },
+  favoriteButton: {
+    position: 'absolute',
+    top: Spacing.sm,
+    right: Spacing.sm,
+    backgroundColor: 'rgba(0,0,0,0.3)',
+    padding: Spacing.sm,
+    borderRadius: BorderRadius.full,
+  },
+  listingInfo: {
     padding: Spacing.lg,
   },
-  customerAvatar: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: Colors.primary[600],
+  listingHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: Spacing.md,
+    marginBottom: Spacing.sm,
   },
-  customerInitials: {
-    color: Colors.text.onPrimary,
+  listingTitle: {
     fontSize: FontSizes.lg,
-    fontWeight: '600',
-  },
-  customerInfo: {
+    fontWeight: '700',
+    color: Colors.text.primary,
     flex: 1,
   },
-  customerName: {
-    fontSize: FontSizes.base,
-    fontWeight: '600',
-    color: Colors.text.primary,
-    marginBottom: Spacing.xs,
-  },
-  customerCompany: {
-    fontSize: FontSizes.sm,
-    color: Colors.text.secondary,
-    marginBottom: Spacing.xs,
-  },
-  customerLastContact: {
-    fontSize: FontSizes.xs,
-    color: Colors.text.light,
-  },
-  customerStatus: {
+  ratingContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    marginLeft: Spacing.sm,
   },
-  statusDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    marginRight: Spacing.xs,
-  },
-  statusText: {
-    fontSize: FontSizes.xs,
+  ratingText: {
+    fontSize: FontSizes.sm,
+    color: Colors.text.secondary,
+    marginLeft: Spacing.xs,
     fontWeight: '600',
   },
+  locationContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: Spacing.md,
+  },
+  locationText: {
+    fontSize: FontSizes.sm,
+    color: Colors.text.secondary,
+    marginLeft: Spacing.xs,
+  },
+  propertyDetails: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.sm,
+    marginBottom: Spacing.md,
+  },
+  propertyTag: {
+    backgroundColor: Colors.primary[100],
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: Spacing.xs,
+    borderRadius: BorderRadius.sm,
+  },
+  propertyTagText: {
+    fontSize: FontSizes.xs,
+    color: Colors.primary[700],
+    fontWeight: '600',
+  },
+  listingPrice: {
+    fontSize: FontSizes.xl,
+    fontWeight: '700',
+    color: Colors.primary[600],
+  },
 });
+

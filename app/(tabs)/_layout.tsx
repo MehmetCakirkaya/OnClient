@@ -1,6 +1,6 @@
 import { Tabs } from 'expo-router';
 import React from 'react';
-import { Platform } from 'react-native';
+import { Platform, View } from 'react-native';
 
 import { HapticTab } from '@/components/HapticTab';
 import { IconSymbol } from '@/components/ui/IconSymbol';
@@ -14,17 +14,25 @@ export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: '#2563eb',
-        tabBarInactiveTintColor: '#9ca3af',
+        tabBarActiveTintColor: '#7c3aed', // Mor renk
+        tabBarInactiveTintColor: '#a1a1aa', // Açık gri
         headerShown: false,
         tabBarButton: HapticTab,
         tabBarBackground: TabBarBackground,
         tabBarStyle: Platform.select({
           ios: {
-            // Use a transparent background on iOS to show the blur effect
             position: 'absolute',
+            backgroundColor: 'transparent',
+            borderTopWidth: 0,
+            elevation: 0,
+            shadowOpacity: 0,
           },
-          default: {},
+          default: {
+            backgroundColor: 'transparent',
+            borderTopWidth: 0,
+            elevation: 0,
+            shadowOpacity: 0,
+          },
         }),
       }}>
       <Tabs.Screen
@@ -35,18 +43,41 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="customers"
+        name="listings"
         options={{
-          title: 'Müşteriler',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="person.3.fill" color={color} />,
+          title: 'İlanlar',
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="building.2.fill" color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="location"
+        options={{
+          title: '',
+          tabBarIcon: ({ color, focused }) => (
+            <View style={{
+              backgroundColor: focused ? Colors.primary[600] : Colors.primary[500],
+              borderRadius: 28,
+              width: 56,
+              height: 56,
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginBottom: 20,
+              shadowColor: Colors.primary[600],
+              shadowOffset: { width: 0, height: 4 },
+              shadowOpacity: 0.3,
+              shadowRadius: 8,
+              elevation: 8,
+            }}>
+              <IconSymbol size={28} name="location.fill" color="white" />
+            </View>
+          ),
         }}
       />
       <Tabs.Screen
         name="add-listing"
         options={{
-          title: '',
+          title: 'İlan Ekle',
           tabBarIcon: ({ color }) => <IconSymbol size={28} name="plus.circle.fill" color={color} />,
-          tabBarStyle: { display: 'none' }, // Bu sayfada tab bar'ı gizle
         }}
       />
       <Tabs.Screen
@@ -54,6 +85,18 @@ export default function TabLayout() {
         options={{
           title: 'Profil',
           tabBarIcon: ({ color }) => <IconSymbol size={28} name="person.circle.fill" color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="customers"
+        options={{
+          href: null, // Tab bar'da gizle
+        }}
+      />
+      <Tabs.Screen
+        name="notifications"
+        options={{
+          href: null, // Tab bar'da gizle
         }}
       />
     </Tabs>
