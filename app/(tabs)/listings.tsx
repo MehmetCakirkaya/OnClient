@@ -4,7 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View, TextInput, Image, Dimensions, Modal } from 'react-native';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View, TextInput, Image, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 const { width } = Dimensions.get('window');
@@ -12,7 +12,6 @@ const { width } = Dimensions.get('window');
 export default function ListingsScreen() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
-  const [isFilterModalVisible, setIsFilterModalVisible] = useState(false);
 
   const listings = [
     {
@@ -96,7 +95,7 @@ export default function ListingsScreen() {
           </View>
           <TouchableOpacity 
             style={styles.filterButton}
-            onPress={() => setIsFilterModalVisible(true)}
+            onPress={() => router.push('/(modal)/listing-filters')}
           >
             <Ionicons name="options-outline" size={20} color={Colors.primary[600]} />
           </TouchableOpacity>
@@ -174,39 +173,7 @@ export default function ListingsScreen() {
           </View>
         </ScrollView>
 
-        {/* Simple Filter Modal */}
-        <Modal
-          visible={isFilterModalVisible}
-          animationType="slide"
-          presentationStyle="pageSheet"
-          onRequestClose={() => setIsFilterModalVisible(false)}
-        >
-          <SafeAreaView style={styles.modalContainer}>
-            <LinearGradient
-              colors={[Colors.primary[100], Colors.primary[50]]}
-              style={styles.modalGradient}
-            >
-              <View style={styles.modalHeader}>
-                <TouchableOpacity onPress={() => setIsFilterModalVisible(false)}>
-                  <Ionicons name="close" size={24} color={Colors.text.primary} />
-                </TouchableOpacity>
-                <Text style={styles.modalTitle}>Filtreler</Text>
-                <View style={{ width: 24 }} />
-              </View>
 
-              <View style={styles.modalContent}>
-                <Text style={styles.comingSoonText}>Filtreleme özellikleri yakında gelecek!</Text>
-                
-                <TouchableOpacity 
-                  style={styles.closeButton}
-                  onPress={() => setIsFilterModalVisible(false)}
-                >
-                  <Text style={styles.closeButtonText}>Kapat</Text>
-                </TouchableOpacity>
-              </View>
-            </LinearGradient>
-          </SafeAreaView>
-        </Modal>
       </LinearGradient>
     </SafeAreaView>
   );
@@ -398,50 +365,5 @@ const styles = StyleSheet.create({
     fontSize: FontSizes.sm,
     color: Colors.text.secondary,
     fontWeight: '500',
-  },
-  // Modal Styles
-  modalContainer: {
-    flex: 1,
-  },
-  modalGradient: {
-    flex: 1,
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.lg,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.primary[200],
-  },
-  modalTitle: {
-    fontSize: FontSizes.xl,
-    fontWeight: '700',
-    color: Colors.text.primary,
-  },
-  modalContent: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: Spacing.lg,
-  },
-  comingSoonText: {
-    fontSize: FontSizes.lg,
-    color: Colors.text.secondary,
-    textAlign: 'center',
-    marginBottom: Spacing.xl,
-  },
-  closeButton: {
-    backgroundColor: Colors.primary[600],
-    borderRadius: BorderRadius.lg,
-    paddingVertical: Spacing.md,
-    paddingHorizontal: Spacing.xl,
-    ...Shadows.md,
-  },
-  closeButtonText: {
-    fontSize: FontSizes.base,
-    fontWeight: '600',
-    color: Colors.text.onPrimary,
   },
 }); 
