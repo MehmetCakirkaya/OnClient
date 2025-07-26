@@ -51,7 +51,8 @@ export default function HomeScreen() {
     { title: 'İlan Ekle', icon: 'add-circle', color: Colors.primary[500], onPress: () => router.push('/(tabs)/add-listing' as any) },
     { title: 'Yeni Müşteri', icon: 'person-add', color: Colors.success[500], onPress: () => router.push('/(modal)/add-customer' as any) },
     { title: 'Hatırlatmalar', icon: 'alarm', color: Colors.blue[500], onPress: () => router.push('/(modal)/reminders' as any) },
-    { title: 'Rapor Al', icon: 'document-text', color: '#f59e0b', onPress: () => console.log('Rapor') },
+    { title: 'Müşteriler', icon: 'people', color: '#8b5cf6', onPress: () => router.push('/(tabs)/customers') },
+    { title: 'Çalışanlar', icon: 'people-outline', color: '#f59e0b', onPress: () => router.push('/(modal)/employees' as any) },
   ];
 
   const recentListings = [
@@ -132,7 +133,7 @@ export default function HomeScreen() {
   const renderListingCard = ({ item }: { item: typeof recentListings[0] }) => (
     <TouchableOpacity 
       style={styles.listingCard}
-      onPress={() => console.log('İlan detayı:', item.id)}
+      onPress={() => router.push(`/listing/${item.id}` as any)}
     >
       <View style={styles.listingImageContainer}>
         <Image source={{ uri: item.image }} style={styles.listingImage} />

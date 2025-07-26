@@ -133,7 +133,10 @@ export default function LocationScreen() {
 
       {/* Seçili İlan Detayı */}
       {selectedListing && (
-        <View style={styles.listingCard}>
+        <TouchableOpacity 
+          style={styles.listingCard}
+          onPress={() => router.push(`/listing/${selectedListing.id}` as any)}
+        >
           <Image 
             source={{ uri: selectedListing.image }} 
             style={styles.listingImage}
@@ -145,7 +148,7 @@ export default function LocationScreen() {
             </Text>
             <Text style={styles.listingPrice}>{selectedListing.price}</Text>
           </View>
-        </View>
+        </TouchableOpacity>
       )}
     </View>
   );

@@ -112,7 +112,7 @@ export default function ListingsScreen() {
               <TouchableOpacity 
                 key={listing.id}
                 style={styles.listingCard}
-                onPress={() => console.log('İlan detayı:', listing.id)}
+                onPress={() => router.push(`/listing/${listing.id}` as any)}
               >
                 <LinearGradient
                   colors={[Colors.surface, Colors.primary[50]]}

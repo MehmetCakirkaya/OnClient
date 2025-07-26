@@ -52,6 +52,20 @@ export default function ModalLayout() {
           presentation: 'modal' 
         }} 
       />
+      <Stack.Screen 
+        name="listing-filters" 
+        options={{ 
+          headerShown: false,
+          presentation: 'modal' 
+        }} 
+      />
+      <Stack.Screen 
+        name="employees" 
+        options={{ 
+          headerShown: false,
+          presentation: 'modal' 
+        }} 
+      />
     </Stack>
   );
 } 

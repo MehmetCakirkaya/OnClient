@@ -71,6 +71,7 @@ export default function CustomerDetailScreen() {
   const [showNotificationModal, setShowNotificationModal] = useState(false);
   const [showDateTimePicker, setShowDateTimePicker] = useState(false);
   const [showReminderModal, setShowReminderModal] = useState(false);
+  const [showOptionsModal, setShowOptionsModal] = useState(false);
   const [selectedNotificationType, setSelectedNotificationType] = useState('');
   const [eventDate, setEventDate] = useState(new Date());
   const [tempDate, setTempDate] = useState(new Date());
@@ -291,6 +292,56 @@ export default function CustomerDetailScreen() {
     );
   };
 
+  const handleEdit = () => {
+    setShowOptionsModal(false);
+    // Müşteri bilgilerini add-customer modalına gönder
+    router.push({
+      pathname: '/(modal)/add-customer',
+      params: {
+        editMode: 'true',
+        customerId: customer.id.toString(),
+        firstName: customer.name.split(' ')[0] || '',
+        lastName: customer.name.split(' ').slice(1).join(' ') || '',
+        email: customer.email,
+        phone: customer.phone,
+        company: customer.campaign,
+        status: customer.status,
+        notes: customer.notes,
+      }
+    });
+  };
+
+  const handleDelete = () => {
+    setShowOptionsModal(false);
+    Alert.alert(
+      'Müşteriyi Sil',
+      'Bu müşteriyi silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.',
+      [
+        { text: 'İptal', style: 'cancel' },
+        { 
+          text: 'Sil', 
+          style: 'destructive',
+          onPress: () => {
+            Alert.alert(
+              'Başarılı',
+              'Müşteri silindi.',
+              [{ 
+                text: 'Tamam',
+                onPress: () => {
+                  if (router.canGoBack()) {
+                    router.back();
+                  } else {
+                    router.replace('/(tabs)/customers');
+                  }
+                }
+              }]
+            );
+          }
+        }
+      ]
+    );
+  };
+
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: Colors.primary[900] }]}>
       <LinearGradient
@@ -312,7 +363,12 @@ export default function CustomerDetailScreen() {
             <Ionicons name="arrow-back" size={24} color={Colors.text.primary} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Müşteri Detayı</Text>
-          <View style={styles.placeholder} />
+          <TouchableOpacity 
+            onPress={() => setShowOptionsModal(true)}
+            style={styles.optionsButton}
+          >
+            <Ionicons name="ellipsis-vertical" size={24} color={Colors.text.primary} />
+          </TouchableOpacity>
         </View>
 
         <ScrollView 
@@ -656,6 +712,40 @@ export default function CustomerDetailScreen() {
             </View>
           </View>
         )}
+
+        {/* Options Modal */}
+        {showOptionsModal && (
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContainer}>
+              <Text style={styles.modalTitle}>Müşteri İşlemleri</Text>
+              
+              <TouchableOpacity
+                onPress={handleEdit}
+                style={styles.modalOption}
+              >
+                <Ionicons name="create" size={20} color={Colors.primary[600]} />
+                <Text style={styles.modalOptionText}>Düzenle</Text>
+                <Ionicons name="chevron-forward" size={20} color={Colors.gray[400]} />
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={handleDelete}
+                style={styles.modalOption}
+              >
+                <Ionicons name="trash" size={20} color={Colors.error} />
+                <Text style={[styles.modalOptionText, { color: Colors.error }]}>Sil</Text>
+                <Ionicons name="chevron-forward" size={20} color={Colors.gray[400]} />
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                onPress={() => setShowOptionsModal(false)}
+                style={styles.modalCancelButton}
+              >
+                <Text style={styles.modalCancelText}>İptal</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
       </LinearGradient>
     </SafeAreaView>
   );
@@ -688,8 +778,12 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: Colors.text.primary,
   },
-  placeholder: {
-    width: 40,
+  optionsButton: {
+    position: 'relative',
+    padding: Spacing.sm,
+    backgroundColor: Colors.surface,
+    borderRadius: BorderRadius.md,
+    ...Shadows.sm,
   },
   scrollView: {
     flex: 1,

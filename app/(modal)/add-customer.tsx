@@ -2,13 +2,15 @@ import { BorderRadius, FontSizes, Shadows, Spacing } from '@/constants/Theme';
 import { Colors } from '@/constants/Colors';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
+import { useRouter, useLocalSearchParams } from 'expo-router';
+import React, { useState, useEffect } from 'react';
 import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View, Alert, Modal } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function AddCustomerScreen() {
   const router = useRouter();
+  const params = useLocalSearchParams();
+  const isEditMode = params.editMode === 'true';
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [customerData, setCustomerData] = useState({
     firstName: '',
@@ -22,6 +24,24 @@ export default function AddCustomerScreen() {
     status: 'uncertain' as 'interested' | 'not-interested' | 'uncertain',
     notes: '',
   });
+
+  // Düzenleme modunda parametrelerden verileri yükle
+  useEffect(() => {
+    if (isEditMode && params) {
+      setCustomerData({
+        firstName: (params.firstName as string) || '',
+        lastName: (params.lastName as string) || '',
+        email: (params.email as string) || '',
+        phone: (params.phone as string) || '',
+        age: (params.age as string) || '',
+        profession: (params.profession as string) || '',
+        company: (params.company as string) || '',
+        address: (params.address as string) || '',
+        status: (params.status as 'interested' | 'not-interested' | 'uncertain') || 'uncertain',
+        notes: (params.notes as string) || '',
+      });
+    }
+  }, [isEditMode]); // params'ı dependency'den çıkardık
 
   const [showStatusDropdown, setShowStatusDropdown] = useState(false);
 
@@ -37,24 +57,36 @@ export default function AddCustomerScreen() {
       return;
     }
     
-    // Yeni müşteri objesi oluştur
-    const newCustomer = {
-      id: Date.now(), // Basit ID üretimi
-      name: `${customerData.firstName.trim()} ${customerData.lastName.trim()}`,
-      email: customerData.email || `${customerData.firstName.toLowerCase()}@example.com`,
-      phone: customerData.phone || '+90 555 000 0000',
-      campaign: 'Manuel Eklendi', // Sabit kampanya adı
-      status: customerData.status,
-      createdAt: new Date().toISOString().split('T')[0],
-      notes: customerData.notes ? 1 : 0, // Not varsa 1, yoksa 0
-    };
+    if (isEditMode) {
+      // Düzenleme modu - güncelleme
+      Alert.alert(
+        'Başarılı',
+        'Müşteri bilgileri güncellendi.',
+        [{ 
+          text: 'Tamam',
+          onPress: () => router.back()
+        }]
+      );
+    } else {
+      // Yeni müşteri ekleme modu
+      const newCustomer = {
+        id: Date.now(), // Basit ID üretimi
+        name: `${customerData.firstName.trim()} ${customerData.lastName.trim()}`,
+        email: customerData.email || `${customerData.firstName.toLowerCase()}@example.com`,
+        phone: customerData.phone || '+90 555 000 0000',
+        campaign: 'Manuel Eklendi', // Sabit kampanya adı
+        status: customerData.status,
+        createdAt: new Date().toISOString().split('T')[0],
+        notes: customerData.notes ? 1 : 0, // Not varsa 1, yoksa 0
+      };
     
-    console.log('Yeni müşteri eklendi:', newCustomer);
-    // Burada Redux store'a eklenecek
-    
-    Alert.alert('Başarılı', 'Müşteri başarıyla eklendi!', [
-      { text: 'Tamam', onPress: () => router.back() }
-    ]);
+      console.log('Yeni müşteri eklendi:', newCustomer);
+      // Burada Redux store'a eklenecek
+      
+      Alert.alert('Başarılı', 'Müşteri başarıyla eklendi!', [
+        { text: 'Tamam', onPress: () => router.back() }
+      ]);
+    }
   };
 
   const handleCancel = () => {
@@ -236,14 +268,14 @@ export default function AddCustomerScreen() {
           {/* Butonlar */}
           <View style={styles.buttonContainer}>
             <TouchableOpacity style={styles.cancelButton} onPress={() => setShowCancelModal(true)}>
-              <Text style={styles.cancelButtonText}>Vazgeç</Text>
+              <Text style={styles.cancelButtonText}>{isEditMode ? 'İptal' : 'Vazgeç'}</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
               <LinearGradient
                 colors={[Colors.primary[500], Colors.primary[600]]}
                 style={styles.saveButtonGradient}
               >
-                <Text style={styles.saveButtonText}>Kaydet</Text>
+                <Text style={styles.saveButtonText}>{isEditMode ? 'Güncelle' : 'Kaydet'}</Text>
               </LinearGradient>
             </TouchableOpacity>
           </View>
@@ -260,7 +292,7 @@ export default function AddCustomerScreen() {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>
-              Değişikliklerden vazgeçilecek. Onaylıyor musunuz?
+              {isEditMode ? 'Değişikliklerden vazgeçilecek. Onaylıyor musunuz?' : 'Değişikliklerden vazgeçilecek. Onaylıyor musunuz?'}
             </Text>
             <View style={styles.modalButtons}>
               <TouchableOpacity style={styles.modalCancelButton} onPress={() => setShowCancelModal(false)}>
