@@ -1,11 +1,11 @@
-import { BorderRadius, FontSizes, Shadows, Spacing } from '@/constants/Theme';
 import { Colors } from '@/constants/Colors';
+import { BorderRadius, FontSizes, Shadows, Spacing } from '@/constants/Theme';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View, Image, Dimensions } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { Dimensions, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const { width, height } = Dimensions.get('window');
 
@@ -82,6 +82,16 @@ export default function LocationScreen() {
     setSelectedListing(listing);
   };
 
+  const handleMarkerDirectPress = (listing: any) => {
+    console.log('Marker direct press:', listing.title);
+    router.push(`/listing/${listing.id}`);
+  };
+
+  const handleListingCardPress = (listing: any) => {
+    console.log('Listing card pressed:', listing.title);
+    router.push(`/listing/${listing.id}`);
+  };
+
   const handleMapPress = () => {
     setSelectedListing(null);
   };
@@ -96,6 +106,16 @@ export default function LocationScreen() {
         >
           <Ionicons name="arrow-back" size={24} color="white" />
         </TouchableOpacity>
+      </SafeAreaView>
+
+      {/* Bilgi Mesajı */}
+      <SafeAreaView style={styles.infoContainer}>
+        <View style={styles.infoCard}>
+          <Ionicons name="information-circle" size={20} color={Colors.primary[600]} />
+          <Text style={styles.infoText}>
+            Pin'e tıklayın: Detay sayfasına gidin • Uzun basın: Önizleme gösterin
+          </Text>
+        </View>
       </SafeAreaView>
 
       {/* Tam Ekran Harita */}
@@ -119,7 +139,8 @@ export default function LocationScreen() {
             }}
           >
             <TouchableOpacity 
-              onPress={() => handleMarkerPress(listing)}
+              onPress={() => handleMarkerDirectPress(listing)}
+              onLongPress={() => handleMarkerPress(listing)}
               style={styles.markerContainer}
             >
               <View style={styles.marker}>
@@ -135,7 +156,7 @@ export default function LocationScreen() {
       {selectedListing && (
         <TouchableOpacity 
           style={styles.listingCard}
-          onPress={() => router.push(`/listing/${selectedListing.id}` as any)}
+          onPress={() => handleListingCardPress(selectedListing)}
         >
           <Image 
             source={{ uri: selectedListing.image }} 
@@ -147,6 +168,10 @@ export default function LocationScreen() {
               {selectedListing.rooms} • {selectedListing.area}
             </Text>
             <Text style={styles.listingPrice}>{selectedListing.price}</Text>
+            <View style={styles.detailButton}>
+              <Text style={styles.detailButtonText}>Detayları Gör</Text>
+              <Ionicons name="arrow-forward" size={16} color={Colors.primary[600]} />
+            </View>
           </View>
         </TouchableOpacity>
       )}
@@ -243,5 +268,37 @@ const styles = StyleSheet.create({
     fontSize: FontSizes.lg,
     fontWeight: '700',
     color: Colors.primary[600],
+  },
+  detailButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: Spacing.xs,
+  },
+  detailButtonText: {
+    fontSize: FontSizes.sm,
+    fontWeight: '600',
+    color: Colors.primary[600],
+    marginRight: Spacing.xs,
+  },
+  infoContainer: {
+    position: 'absolute',
+    top: 80,
+    left: 20,
+    right: 20,
+    zIndex: 1000,
+  },
+  infoCard: {
+    backgroundColor: 'rgba(255,255,255,0.95)',
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.md,
+    flexDirection: 'row',
+    alignItems: 'center',
+    ...Shadows.md,
+  },
+  infoText: {
+    fontSize: FontSizes.sm,
+    color: Colors.text.secondary,
+    marginLeft: Spacing.sm,
+    flex: 1,
   },
 }); 
